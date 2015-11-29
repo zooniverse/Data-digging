@@ -187,5 +187,5 @@ window_size = 3
 pd.rolling_median(df[10:],window_size).plot(subplots=True,title='{0:} data smoothed over {1:.0f}-day window'.format(project['display_name'],window_size))
 
 plotfile2 = "{0:}talk_{1:}_summary.png".format(plotpath,project_name)
-plt.savefig(plotfile1)
+plt.savefig(plotfile2)
 print "Plot 2 saved as {0:}".format(plotfile2)
