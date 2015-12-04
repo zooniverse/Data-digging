@@ -1,2 +1,2 @@
 # Data-digging
-Scripts and documentation for data management, analysis, visualization, of Zooniverse projects.
+Scripts and documentation for data management, analysis, and visualization of Zooniverse projects.
