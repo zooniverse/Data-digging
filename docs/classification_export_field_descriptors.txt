@@ -1,0 +1,98 @@
+This file describes the format of the classification file exports from the Zooniverse Project Builder. Each row of the file is a single classification. It records the choices and markings of one user for one workflow for one subject. The field/column names are explained here.
+
+user_name (string) - The user name of the person doing the classification
+
+user_id (integer) - A unique ID corresponding to the user_name
+
+user_ip (40-character hex string) - *** what is this exactly? a hash of something? what? ***
+
+workflow_id (integer) - A unique ID for the workflow done
+
+workflow_name (string) - The text name of the workflow done
+
+workflow_version (2 integers separated by '.') - The first integer represents the 'major' version and the second represents the 'minor' version. When tasks are changed (added, removed, etc.), the major version increments and the minor version is set to zero. *** Is this true? *** When just wording is changed, the minor version increments.
+
+created_at (datetime in format YYYY-MM-DD HH:MM:SS UTC) - The time the classification is recorded in the Zooniverse database
+
+gold_standard (***format?***) - *** I don't know what goes here, as I haven't done any gold yet; it's always blank in my exports. Help? ***
+
+expert (***format?***) - *** I don't know what goes here, as I haven't done any expert yet; it's always blank in my exports. Help? ***
+
+metadata (JSON formatted string) - Information about the user's interface and the classification itself
+
+annotations (JSON formatted string) - The content of the user's classification
+
+subject_data (JSON formatted string) - Information about the subject shown to the user
+
+
+---
+within subject_data:
+---
+The first unlabeled integer is unique subject ID. Most of the rest of the JSON is the metadata for the subject, as uploaded by the project creator. The exception is the field 'retired' which is either 'null' or a JSON string describing the subject's retirement:
+
+id (integer) - *** what is this?? ***
+
+set_member_subject_id (***format? mine are all 'null'***) - *** what is this?? ***
+
+workflow_id (integer) - The workflow for which this subject was retired
+
+classification_count (integer) - The number of classifications this subject has received *** wouldn't it be nice to have the classification count even if a subject hadn't retired yet?! ***
+
+created_at (datetime in format YYYY-MM-DDTHH:MM:SS.SSSZ ***in zulu time?!? Maybe better to have in same format as 'created_at'***) - *** what is this exactly? the time of the first classification as provided by the first user's browser? or is it the database time for the first classification? Or the time the subject was uploaded? Or something else? ***
+
+updated_at (datetime in format YYYY-MM-DDTHH:MM:SS.SSSZ ***in zulu time?!? Maybe better to have in same format as 'created_at'***) - *** what is this exactly? Seems to match 'retired_at'. When would it not match 'retired_at'? ***
+
+retired_at (datetime in format YYYY-MM-DDTHH:MM:SS.SSSZ ***in zulu time?!? Maybe better to have in same format as 'created_at'***) - The time at which *** um, what? The last user clicked 'done'? The time the database calculated retirement? ***
+
+subject_id (integer) - *** kinda redundant to report this here, no? ***
+
+
+---
+within metadata:
+---
+started_at (datetime in format YYYY-MM-DDTHH:MM:SS.SSSZ ***in zulu time?!? Maybe better to have in same format as 'created_at'***) - The time, as recorded by the user's browser ***true?***, that the subject was displayed to the user *** what timezone? user's local? ***
+
+finished_at (datetime in format YYYY-MM-DDTHH:MM:SS.SSSZ ***in zulu time?!? Maybe better to have in same format as 'created_at'***) - The time, as recorded by the user's browser ***true?***, that the user clicked the 'Done' button *** what timezone? user's local? ***
+
+user_agent (string) - The browser and operating system model and version  *** is this it, or is there more info in there? Is it provided by the browser? And how am I supposed to interpret something like "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.134 Safari/537.36" ?? ***
+
+utc_offset (integer) - The offset from UTC time in seconds *** true? *** of the user's browser
+
+user_language (string) - The language in which the user completed the classification, abbreviated. Currently only 'en' for English is supported. *** true? ***
+
+viewport (two integers labeled 'width' and 'height') - The dimensions of the viewport on the user's device, i.e. the full size of the area where the subject can be presented. *** Is this right?? ***
+
+subject_dimensions (four integers labeled 'clientWidth', 'clientHeight', 'naturalWidth', 'naturalHeight') - The 'natural' size of the subject is the subject's dimensions, in pixels, as uploaded. The 'client' size of the subject is the dimensions, in pixels, that the subject was seen at by the user. *** is this right?? ***
+
+---
+within annotations:
+---
+task (string) - the name of each task as provided by the project creator
+
+task_label (string) - the question for each task as it was shown to the user. *** does this value change in the export if the user has changed languages?! ***
+
+value (string) - the answer for each task as provided by the user
+
+---
+for drawing tasks:
+---
+tool (integer) - a unique ID for the drawing tool used for a given task
+
+tool_label (string) - the label of the drawing tool used as seen by the user
+
+frame (integer) - *** I don't know what this is! ***
+
+[for polygons]
+closed (true/false) - True if the user-drawn polygon was closed. False otherwise.
+
+[for polygons]
+points (JSON formatted string) - A list of the points the user drew in (x,y) coordinate format, with each x and y value as real numbers. x and y values are pixel values relative to ***??? to what? the natural dimensions of the subject? or the client dimensions? or the viewport? And using what origin?? upper left? lower left? ***
+
+[for points]
+x (float) - the horizontal value of the point as a real number relative to *** what? *** using the ***upper/lower?*** left corner as the origin
+
+[for points]
+y (float) - the vertical value of the point as a real number relative to *** what? *** using the ***upper/lower?*** left corner as the origin
+
+
+*** Note that I only have data for drawing tasks using polygon and point tools. So I don't know what the data looks like for other types of drawing tools and they aren't represented here! ***
