@@ -381,6 +381,117 @@ def plurality(datarow,survey='decals',check_threshold = 0.50):
         # Discuss
         task_eval[16] = 1
         
+    if survey in ('gzh',):
+
+        d = { 0:{'len':3},       # 'Shape', 'Is the galaxy simply smooth and rounded, with no sign of a disk?', ->
+              1:{'len':2},       # 'Disk', 'Could this be a disk viewed edge-on?', ->
+              2:{'len':2},       # 'Bar', 'Is there any sign of a bar feature through the centre of the galaxy?', leadsTo: 'Is there any sign of a spiral arm pattern?', ->
+              3:{'len':2},       # 'Spiral', 'Is there any sign of a spiral arm pattern?', ->
+              4:{'len':4},       # 'Bulge', 'How prominent is the central bulge, compared with the rest of the galaxy?', leadsTo: 'Is there anything odd?', ->
+              5:{'len':2},       # 'Odd', 'Is there anything odd?', ->
+              6:{'len':3},       # 'Round', 'How rounded is it?', leadsTo: 'Is there anything odd?', ->
+              7:{'len':7},       # 'Odd', 'What are the odd features?', ->            Not a checkbox 
+              8:{'len':3},       # 'Bulge', 'Does the galaxy have a bulge at its center? If so, what shape?', leadsTo: 'Is there anything odd?', ->
+              9:{'len':3},       # 'Spiral', 'How tightly wound do the spiral arms appear?', leadsTo: 'How many spiral arms are there?', ->
+             10:{'len':6},       # 'Spiral', 'How many spiral arms are there?', leadsTo: 'How prominent is the central bulge, compared with the rest of the galaxy?', ->
+             11:{'len':2},       # 'Clumps', 'Does the galaxy have a mostly clumpy appearance?', ->
+             12:{'len':6},       # 'Clumps', 'How many clumps are there?', leadsTo: 'Do the clumps appear in a straight line, a chain, or a cluster?', ->
+             13:{'len':2},       # 'Clumps', 'Is there one clump which is clearly brighter than the others?', ->
+             14:{'len':2},       # 'Clumps', 'Is the brightest clump central to the galaxy?', ->
+             15:{'len':4},       # 'Clumps', 'Do the clumps appear in a straight line, a chain, or a cluster?', leadsTo: 'Is there one clump which is clearly brighter than the others?', ->
+             16:{'len':2},       # 'Symmetry', 'Does the galaxy appear symmetrical?', leadsTo: 'Do the clumps appear to be embedded within a larger object?', ->
+             17:{'len':2}}       # 'Clumps', 'Do the clumps appear to be embedded within a larger object?', leadsTo: 'Is there anything odd?', ->
+
+        # Don't need to skip indices since there's no checkbox question
+        idx = 0
+        for i in range(len(d)):
+            d[i]['idx'] = idx
+            idx += d[i]['len']
+
+        task_eval = [0]*len(d)
+        task_ans  = [0]*len(d)
+        
+        # Top-level: smooth/features/artifact
+        task_eval[0] = 1
+        
+        if weights[d[0]['idx']:d[0]['idx']+d[0]['len']].argmax() < 2:
+
+            # Smooth galaxies
+            if weights[d[0]['idx']:d[0]['idx']+d[0]['len']].argmax() == 0:
+                # Roundness
+                task_eval[1] = 1
+
+            # Features/disk galaxies
+            if weights[d[0]['idx']:d[0]['idx']+d[0]['len']].argmax() == 1:
+                task_eval[2] = 1
+
+                # Clumpy question
+                if weights[d[2]['idx']] > weights[d[2]['idx']+1]:
+
+                    # Clumpy galaxies
+                    task_eval[3] = 1
+                    if weights[d[3]['idx']:d[3]['idx'] + d[3]['len']].argmax() > 0:
+                        # Multiple clumps
+                        if weights[d[3]['idx']:d[3]['idx'] + d[3]['len']].argmax() > 1:
+                            # Clump arrangement
+                            task_eval[4] = 1
+                            if weights[d[4]['idx']:d[4]['idx']+d[4]['len']].argmax() == 3:
+                                # Bar
+                                task_eval[11] = 1
+                                # Spiral structure
+                                task_eval[12] = 1
+                                if weights[d[12]['idx']] > weights[d[12]['idx']+1]:
+                                    # Spiral arms
+                                    task_eval[13] = 1
+                                    task_eval[14] = 1
+                                # Bulge prominence
+                                task_eval[15] = 1
+                        # One clump brighter than others
+                        task_eval[5] = 1
+                        if weights[d[5]['idx']] > weights[d[5]['idx']+1]:
+                            # Bright clump central
+                            task_eval[6] = 1
+                    if weights[d[6]['idx']] > weights[d[6]['idx']+1]:
+                        # Symmetrical clumps
+                        task_eval[7] = 1
+                        # Clumps embedded
+                        task_eval[8] = 1
+
+                else:
+                    # Disk galaxies
+                    task_eval[9] = 1
+                    # Edge-on disks
+                    if weights[d[9]['idx']] > weights[d[9]['idx']+1]:
+                        # Bulge shape
+                        task_eval[10] = 1
+                    # Not edge-on disks
+                    else:
+                        # Bar
+                        task_eval[11] = 1
+                        # Spiral
+                        task_eval[12] = 1
+                        if weights[d[12]['idx']] > weights[d[12]['idx']+1]:
+                            # Spiral arm numbers and winding
+                            task_eval[13] = 1
+                            task_eval[14] = 1
+                        # Bulge prominence
+                        task_eval[15] = 1
+            
+            # Odd features
+            task_eval[16] = 1
+            if weights[d[16]['idx']] > weights[d[16]['idx']+1]:
+                # Only count if it's above some threshold, since this is a checkbox question
+                if max(weights[d[17]['idx']:d[17]['idx'] + d[17]['len']]) > check_threshold:
+                    task_eval[17] = 1
+        
+        # Clumpy questions 5-8 not answered if they were organized in a spiral
+
+        if weights[d[4]['idx']:d[4]['idx']+d[4]['len']].argmax() == 3 and task_eval[4]:
+            task_eval[5] = 0
+            task_eval[6] = 0
+            task_eval[7] = 0
+            task_eval[8] = 0
+
     if survey in ('candels','candels_2epoch'):
         
         d = { 0:{'idx':0 ,'len':3},       # 'Shape', 'Is the galaxy simply smooth and rounded, with no sign of a disk?', ->
@@ -582,6 +693,6 @@ def plurality(datarow,survey='decals',check_threshold = 0.50):
         try:
             task_ans[i]  = weights[d[i]['idx']:d[i]['idx'] + d[i]['len']].argmax() + d[i]['idx']
         except ValueError:
-            print len(weights),len(task_ans)
+            print "ValueError in gz_class: {0:} categories, {1:} answers".format(len(weights),len(task_ans))
 
     return task_eval,task_ans

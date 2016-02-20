@@ -9,6 +9,7 @@ import datetime
 import dateutil.parser
 import pandas as pd
 from gz_class import plurality
+import itertools
 
 """
 
@@ -33,7 +34,6 @@ dbp = client['galaxy_zoo']
 
 subjects = dbp['galaxy_zoo_subjects']
 classifications = dbp['galaxy_zoo_classifications']
-users = dbp['galaxy_zoo_users']
 groups = dbp['galaxy_zoo_groups']
 
 # Ouroboros Talk database
@@ -55,6 +55,7 @@ def survey_dict():
         u'illustris':       {'name':u'Illustris','retire_limit':40},
         u'sloan_singleband':{'name':u'SDSS single-band','retire_limit':40},
         u'ukidss':          {'name':u'UKIDSS','retire_limit':40}}
+        #u'gzh':             {'name':u'Galaxy Zoo Hubble','retire_limit':48},
         #u'sloan':           {'name':u'SDSS DR8','retire_limit':60},        # Memory error - can't collate the full classification file in pandas
 
     return d
@@ -104,7 +105,8 @@ def most_recent(survey,ndays=14,log_date=True):
 
     # If stored data doesn't exist or needs updating, query the database. 
     # First try to see if there's data within the last two weeks; if not found, search the entire database.
-
+    # Can be super slow - try building an index on "created_at" field first
+    #
     recents = classifications.find({'created_at':{'$gte':today - datetime.timedelta(days=ndays)},'workflow_id':workflow_id})
     rc = recents.count()
     if rc == 0:
@@ -324,7 +326,7 @@ def finish_date(survey,counts):
 
     return None
 
-def get_tags(zooniverse_id):
+def get_tags(zooniverse_id,_format='str'):
 
     # Get the Talk tags for a particular object
 
@@ -333,12 +335,16 @@ def get_tags(zooniverse_id):
     for fd in focused_discussions:
         for comment in fd['comments']:
             taglist.append(comment['tags'])
-    tags_str = ', '.join([item for sublist in taglist for item in sublist])
+    if _format == 'list':
+        return taglist
+    else:
 
-    if len(tags_str) == 0:
-        tags_str = None
+        tags_str = ', '.join([item for sublist in taglist for item in sublist])
 
-    return tags_str
+        if len(tags_str) == 0:
+            tags_str = None
+
+        return tags_str
 
 def most_collected(survey):
 
@@ -445,6 +451,22 @@ def most_discussed(survey):
 
     return None
 
+def most_common_tags(survey,n=10):
+
+    # What are the most common hashtags in this project?
+    #
+    decals_galaxies = subjects.find({'metadata.survey':'decals'})
+
+    taglist = []
+    for gal in decals_galaxies:
+        nested_list = get_tags(gal['zooniverse_id'],_format='list')
+        chain = itertools.chain(*nested_list)
+        taglist.extend(list(chain))
+
+    c = Counter(taglist)
+
+    return c
+
 def is_number(s):
 
     # Is a string a representation of a number?
@@ -455,7 +477,7 @@ def is_number(s):
     except ValueError:
         return False
 
-def morphology_distribution(survey):
+def morphology_distribution(survey,absolute_counts=False):
 
     # What's the distribution of morphologies so far?
 
@@ -552,7 +574,10 @@ def morphology_distribution(survey):
         for k in c:
             pv.append(c[k])
             pl.append(labels[k])
-        ax.pie(pv,labels=pl,colors=colors,autopct='%1.0f%%')
+        if absolute_counts:
+            ax.pie(pv,labels=pl,colors=colors,autopct=lambda(p): '{:.0f}'.format(p * sum(pv) / 100))
+        else:
+            ax.pie(pv,labels=pl,colors=colors,autopct='%1.0f%%')
         title = '{0:} - t{1:02} {2:}'.format(survey_name,i,tasklabels[i]) if i == 0 else 't{0:02} {1:}'.format(i,tasklabels[i])
         ax.set_title(title)
         ax.set_aspect('equal')
@@ -580,7 +605,7 @@ def morphology_distribution(survey):
 
 if __name__ == "__main__":
 
-    do_all = False
+    do_all = True
     surveys = survey_dict().keys() if do_all else ('decals',)
 
     for survey in surveys:
