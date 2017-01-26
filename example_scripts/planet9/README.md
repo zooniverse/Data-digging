@@ -1,0 +1,2 @@
+### Planet 9
+Python script for exporting marking data from [Planet 9](https://www.zooniverse.org/projects/marckuchner/planet-9-rogue-worlds) project.  Exports Panoptes classification CSV into new marking CSV.  This is a customization of the Andromeda Project script, using point markers instead of circle markers. See that project for more details.
