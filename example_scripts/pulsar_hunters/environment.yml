@@ -1,0 +1,5 @@
+name: pulsar-hunters
+dependencies:
+- python=3.5.1
+- pandas=0.17.1
+- numpy=1.10.1
