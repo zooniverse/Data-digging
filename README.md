@@ -5,6 +5,8 @@ This repository contains scripts and documentation related to analyzing classifi
 
 *example_scripts*: The example_scripts directory holds top-level example scripts (which are generally applicable to any project) and project-specific subdirectories, each with scripts and data files.  These scripts convert classification data export CSV into more useful formats and data products.  In most cases, these scripts extract information from the compact JSON-formatted “annotations” column data into an easier flat CSV file.
 
+*developement*: Sandbox directory for code development.
+
 ### Project & Script Descriptions
 Below we describe the analysis components implemented in each processing script.  Feel free to pick-and-choose features described below when writing new scripts for your own project.
 
