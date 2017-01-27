@@ -1,0 +1,5 @@
+#PRN Analysis
+
+The Planetary Response Network is not a single project, but rather a series of projects all under the same umbrella. The script below was used for the 2016 Ecuador earthquake project, which has a short workflow that's basically "is the image classifiable?" --> (if yes) "Please Mark All The Things". The purpose of the script is to extract the information about the overall markings on each image.
+
+ - `prn_ecuador_subjects_locations_extract.py` - This program determines how many of each type of marking were made for a given subject, and outputs them as a fraction of the total number of classifications of that subject. It also extracts the lat/lon and subject image URLs from the subject data for the project and includes those in the aggregated output CSV. Additionally, it outputs a CSV with 1 line per classification, but it's an abbreviated form of the classification that just shows whether a user made any markings in a given category (and not the details of the marking). This was useful for our collaborators who didn't care where on the image each marking was, just whether there *was* a marking of a given type by a given person.

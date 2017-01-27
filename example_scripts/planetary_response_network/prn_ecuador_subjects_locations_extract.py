@@ -4,9 +4,9 @@ importn pandas as pd
 from ast import literal_eval
 
 '''
-This file will break the raw classifications from the PRN Ecuador (2016) project out into a csv file with individual markings, including a file that shows the lat/long of the markings (based on reading the subject data, which included geocoords, and interpolating those to find the geoboundaries of markings). The markings are rectangles.
+This program determines how many of each type of marking were made for a given subject, and outputs them as a fraction of the total number of classifications of that subject. It also extracts the lat/lon and subject image URLs from the subject data for the project and includes those in the aggregated output CSV.
 
-The program also outputs a list of URLs to link to the before/after photos that make up each subject.
+Additionally, it outputs a CSV with 1 line per classification, but it's an abbreviated form of the classification that just shows whether a user made any markings in a given category (and not the details of the marking). This was useful for our collaborators who didn't care where on the image each marking was, just whether there *was* a marking of a given type by a given person.
 '''
 
 def get_structural(row):
@@ -208,7 +208,9 @@ subj_w_class.to_csv('prn_subjects_lat_long_images_classifications.csv')
 class_needed = classifications['classification_id subject_id user_name user_label user_id user_ip workflow_id workflow_name workflow_version created_at struct_damage road_blocked thick_cloud missing_image'.split()]
 
 
-
+# add the aggregated info to each line in the classifications table, which does
+# mean a lot of duplicated info in those columns, but also makes some analyses
+# easier.
 class_subj = pd.merge(class_needed, subj_w_class, how='left',
                                on='subject_id',
                                sort=False, suffixes=('_2', ''), copy=True)

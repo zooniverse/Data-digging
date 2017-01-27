@@ -17,7 +17,7 @@ linefile_in = 'galaxy-zoo-bar-lengths-line-drawings.csv'
 try:
     cluster_method = sys.argv[1]
 except:
-    cluster_method = 'average'
+    cluster_method = 'average' #other options: single, complete, ward
 
 all_lines_out       = 'gzbl_line_marks_raw_with_clusters_%s.csv' % cluster_method
 clustered_lines_out = 'gzbl_line_marks_only_with_clusters_%s.csv' % cluster_method
@@ -299,7 +299,6 @@ print("...done. Printing to outfile.")
 
 clusters_all.to_csv(clusters_out)
 
-# we still need to compute the consensus line measurement for each cluster, as well as some stats on that cluster (mainly counting up the classification_ids that are members of that cluster and reporting that as a fraction of n_classifications for that subject)
 
 
 
