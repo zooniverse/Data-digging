@@ -35,6 +35,11 @@ Marking interesting objects (including moving objects) in images from the WISE s
 
 *Script* -- Creates CSV of point marker info from simple marking workflow.
 
+#### [Steller Watch](https://www.zooniverse.org/projects/sweenkl/steller-watch)
+Workflow #1: Yes/No if sea lions are present.
+
+*Scripts* -- 1) Extracts normal csv from embedded JSON. 2) Aggregates results.
+
 
 ### Older Scripts (Ouroboros-based)
 
