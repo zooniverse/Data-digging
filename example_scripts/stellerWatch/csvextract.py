@@ -7,8 +7,12 @@
 # Last modified by LT: 2-27-17 
 # -------------------------------------------------------------
 
-# Note: In order for script to work, first needed to find-replace all null values with ""null"" within the original presence-or-absence-classifications-beta.csv file obtained from the Project Builder 'Data Exports'
-# Code improvement would be to build in solution directly for this issue
+# Note: In order for script to work:
+#1) needed to find-replace all null values with ""null"" within the original presence-or-absence-classifications.csv file obtained from the Project Builder 'Data Exports'.
+#2) erased all lines in original presence-or-absence-classifications.csv file prior to 2-23-17 beta launch 
+# So instead of using presence-or-absence-classifications.csv, I created presence-or-absence-classifications-beta.csv that has the above changes.
+
+# Code improvement would be to build in solutions directly for these issues
 
 #Python 3.5.2
 import sys
