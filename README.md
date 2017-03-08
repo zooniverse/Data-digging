@@ -10,6 +10,16 @@ This repository contains scripts and documentation related to analyzing classifi
 ### Project & Script Descriptions
 Below we describe the analysis components implemented in each processing script.  Feel free to pick-and-choose features described below when writing new scripts for your own project.
 
+#### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
+Marking star cluster locations in Hubble Space Telescope images.
+
+*Script* -- Creates CSV of circular marker info from simple marking workflow.
+
+#### Flying HI
+A beta project to examine HI structures in the Milky Way.
+
+*Scripts* -- Extracts markings from classification file into individual files (ready for clustering).
+
 #### Galaxy Zoo Bar Lengths
 Answering questions about the presence of bar structures and marking bar dimensions.
 
@@ -24,11 +34,6 @@ Extracting markings of damage and other features from post-disaster satellite im
 Classification of radio observations to identify pulsar candidates.
 
 *Scripts* -- Analyzes responses and aggregates object type answer, also script for counting classifications.
-
-#### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
-Marking star cluster locations in Hubble Space Telescope images.
-
-*Script* -- Creates CSV of circular marker info from simple marking workflow.
 
 #### [Rogue Worlds: Planet 9 Project](https://www.zooniverse.org/projects/marckuchner/planet-9-rogue-worlds)
 Marking interesting objects (including moving objects) in images from the WISE satellite.
