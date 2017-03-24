@@ -45,7 +45,7 @@ Workflow #1: Yes/No if sea lions are present.
 
 *Scripts* -- 1) Extracts normal csv from embedded JSON. 2) Aggregates results.
 
-#### Decoding the Civil War
+#### [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war)
 The decoding the civil war project invites volunteers to transcribe contemporary, hand-written transcripts of telegrams sent between allies during the American Civil War. Portions of these transcripts are enciphered using whole-word substitutions. The ultimate goal of the project is to allow volunteers to identify these substituted words based on their contextual appropriateness.
 
 The bespoke consensus and aggregation code written for this project is archived and documented in a [separate repository](https://github.com/hughdickinson/DCWConsensus).
