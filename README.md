@@ -10,30 +10,37 @@ This repository contains scripts and documentation related to analyzing classifi
 ### Project & Script Descriptions
 Below we describe the analysis components implemented in each processing script.  Feel free to pick-and-choose features described below when writing new scripts for your own project.
 
+Some issues that all or most of these scripts address:
+ - extracting classification marks/answers from within the JSON fields of the CSV classification data exports
+ - cleaning the classification export files: 
+   - removing duplicate classifications (if they occur)
+   - dealing with empty classifications (some projects throw them out, others count this as "nothing here")
+   - only including classifications from the most up-to-date workflow version(s)
+
 #### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
 Marking star cluster locations in Hubble Space Telescope images.
 
 *Script* -- Creates CSV of circular marker info from simple marking workflow.
 
-#### Flying HI
+#### [Flying HI](https://www.zooniverse.org/projects/vrooje/flying-hi)
 A beta project to examine HI structures in the Milky Way.
 
 *Scripts* -- Extracts markings from classification file into individual files (ready for clustering).
 
-#### Galaxy Zoo Bar Lengths
+#### [Galaxy Zoo Bar Lengths](https://www.zooniverse.org/projects/vrooje/galaxy-zoo-bar-lengths/)
 Answering questions about the presence of bar structures and marking bar dimensions.
 
 *Scripts* -- Analyzes joint question+marking workflow (but mostly the markings).
 
-#### Planetary Response Network
+#### [Planetary Response Network](https://www.zooniverse.org/projects/vrooje/planetary-response-network-and-rescue-global-ecuador-earthquake-2016)
 Extracting markings of damage and other features from post-disaster satellite imagery.
 
 *Script* -- puts classification information together with geocoordinate information from subject exports.
 
-#### Pulsar Hunters
+#### [Pulsar Hunters](https://www.zooniverse.org/projects/zooniverse/pulsar-hunters)
 Classification of radio observations to identify pulsar candidates.
 
-*Scripts* -- Analyzes responses and aggregates object type answer, also script for counting classifications.
+*Scripts* -- Analyzes responses and aggregates object type answer, also script for counting classifications. IP address tracking was wonky during this project, so unique non-logged-in users were identified with browser session info instead.
 
 #### [Rogue Worlds: Planet 9 Project](https://www.zooniverse.org/projects/marckuchner/planet-9-rogue-worlds)
 Marking interesting objects (including moving objects) in images from the WISE satellite.
