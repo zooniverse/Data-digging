@@ -14,7 +14,7 @@ Some issues that all or most of these scripts address:
  - extracting classification marks/answers from within the JSON fields of the CSV classification data exports
  - cleaning the classification export files: 
    - removing duplicate classifications (if they occur)
-   - dealing with empty classifications (some projects throw them out, others count this as "nothing here")
+   - dealing with empty classifications (some projects throw them out, others count them as "nothing here" votes)
    - only including classifications from the most up-to-date workflow version(s)
 
 #### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
@@ -22,40 +22,56 @@ Marking star cluster locations in Hubble Space Telescope images.
 
 *Script* -- Creates CSV of circular marker info from simple marking workflow.
 
+*Marker type* -- circle
+
 #### [Flying HI](https://www.zooniverse.org/projects/vrooje/flying-hi)
 A beta project to examine HI structures in the Milky Way.
 
 *Scripts* -- Extracts markings from classification file into individual files (ready for clustering).
+
+*Marker type* -- line, point, ellipse, text input attached to mark
 
 #### [Galaxy Zoo Bar Lengths](https://www.zooniverse.org/projects/vrooje/galaxy-zoo-bar-lengths/)
 Answering questions about the presence of bar structures and marking bar dimensions.
 
 *Scripts* -- Analyzes joint question+marking workflow (but mostly the markings).
 
+*Marker type* -- line
+
 #### [Planetary Response Network](https://www.zooniverse.org/projects/vrooje/planetary-response-network-and-rescue-global-ecuador-earthquake-2016)
 Extracting markings of damage and other features from post-disaster satellite imagery.
 
 *Script* -- puts classification information together with geocoordinate information from subject exports.
+
+*Marker type* -- point, polygon (though these aren't reduced here)
 
 #### [Pulsar Hunters](https://www.zooniverse.org/projects/zooniverse/pulsar-hunters)
 Classification of radio observations to identify pulsar candidates.
 
 *Scripts* -- Analyzes responses and aggregates object type answer, also script for counting classifications. IP address tracking was wonky during this project, so unique non-logged-in users were identified with browser session info instead.
 
-#### [Rogue Worlds: Planet 9 Project](https://www.zooniverse.org/projects/marckuchner/planet-9-rogue-worlds)
+*Marker type* -- no markers, only 1 question task
+
+#### [Backyard Worlds: Planet 9 Project](https://www.zooniverse.org/projects/marckuchner/backyard-worlds-planet-9)
 Marking interesting objects (including moving objects) in images from the WISE satellite.
 
 *Script* -- Creates CSV of point marker info from simple marking workflow.
+
+*Marker type* -- point
 
 #### [Steller Watch](https://www.zooniverse.org/projects/sweenkl/steller-watch)
 Workflow #1: Yes/No if sea lions are present.
 
 *Scripts* -- 1) Extracts normal csv from embedded JSON. 2) Aggregates results.
 
+*Marker type* -- no marks, only question tasks
+
 #### [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war)
 The decoding the civil war project invites volunteers to transcribe contemporary, hand-written transcripts of telegrams sent between allies during the American Civil War. Portions of these transcripts are enciphered using whole-word substitutions. The ultimate goal of the project is to allow volunteers to identify these substituted words based on their contextual appropriateness.
 
 The bespoke consensus and aggregation code written for this project is archived and documented in a [separate repository](https://github.com/hughdickinson/DCWConsensus).
+
+*Marker type* -- line, text input attached to mark
 
 ### Older Scripts (Ouroboros-based)
 
