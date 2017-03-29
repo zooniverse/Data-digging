@@ -1,4 +1,4 @@
-#Pulsar Hunters Analysis
+### Pulsar Hunters Analysis
 
 Was originally at @vrooje's [pulsar-hunters-analysis](https://github.com/vrooje/pulsar-hunters-analysis) repo.
 
@@ -11,3 +11,5 @@ There are 2 Python scripts, both of which use the classifications csv file that'
  - `make_count_file_for_treemap.py` - counts classifications by user and assigns each user a color code, outputting them to a file that is readable by `treemap.R`.
 
  The other script here is `treemap.R`, an R program to create a visualization of classifications provided by user. There are examples of these online, if you'd like to see some before trying out this code, which I'd recommend given that this program can take a *very* long time to run for a large project. If you can't find a good example online, consider running it on a subsample of users, say, 1000 of them. (For the full project user list it took the code something like 24 hours to run. And its output is a single raster image.)
+
+The aggregation script is reasonably well commented so you should be able to extract from it useful examples of, e.g., selecting only classifications from the most current workflow.
