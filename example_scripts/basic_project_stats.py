@@ -295,7 +295,7 @@ if time_elapsed:
             print("Oops:\n%s" % the_error)
             classifications['finished_at'] = pd.to_datetime(fa_temp)
 
-
+    # we did all that above so that this would only take one line and be quite fast
     classifications['class_t_length'] = (classifications.finished_at - classifications.started_at)
 
     # throw away absurd time counts: accept lengths between 0 < dt < 30 minutes
