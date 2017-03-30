@@ -1,4 +1,4 @@
-#PRN Analysis
+### PRN Analysis
 
 The Planetary Response Network is not a single project, but rather a series of projects all under the same umbrella. The script below was used for the 2016 Ecuador earthquake project, which has a short workflow that's basically "is the image classifiable?" --> (if yes) "Please Mark All The Things". The purpose of the script is to extract the information about the overall markings on each image.
 

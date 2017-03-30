@@ -5,7 +5,9 @@ Scripts in the top-level directory should work for any Panoptes project (which a
 
 Scripts in each project directory may contain code that needs to be modified to work on a different project, or that would need to be generalized to make them applicable to any project.
 
-Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in the [panoptes_analysis](https://github.com/vrooje/panoptes_analysis) repo. They both can run on the classification export from Galaxy Zoo Bar Lengths, which is included in this repo. But they should run fine on any classification export, so long as you're operating in the Python environment defined by *basic_project_stats.yml* (for both scripts). More details on each:
+Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in the [panoptes_analysis](https://github.com/vrooje/panoptes_analysis) repo. They both can run on the classification export from Galaxy Zoo Bar Lengths, which is included in this repo. But they should run fine on any classification export, so long as you're operating in the Python environment defined by *basic_project_stats.yml* (for both scripts). 
+
+More details on the general scripts in this directory:
 
  - `basic_project_stats.py` - computes basic statistics from a raw classification export file. Run without any inputs to see usage details. Outputs to screen:
     - Total number of classifications
@@ -16,6 +18,11 @@ Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in
     - Gini coefficient for classifications (more details on this in the code, as comments)
 
    This pays no attention to separate workflows or versions, so if you want those separated you will need to save a subset of the raw classification exports to a new csv file with the same format.
+
+ - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
+    - meant to be imported: `from get_workflow_info import get_workflow_info` 
+    - takes a dataframe containing the raw contents of a workflow export requested from the project builder
+    - returns a list of tasks and details about each of them. Details in the initial comments of the script.
 
  - `sessions_inproj_byuser.py` - computes classification and session statistics for classifiers. Run at the the command line without additional inputs to see the usage. *Output columns:*
     - *n_class:* total number of classifications by the classifier

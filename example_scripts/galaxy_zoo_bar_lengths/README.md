@@ -1,4 +1,4 @@
-#Galaxy Zoo Bar Lengths Analysis
+### Galaxy Zoo Bar Lengths Analysis
 
 GZBL was launched the same day Panoptes launched (it was one of the 4 original projects). The project has 1 workflow, which combines question tasks and 1 marking task where users are asked to draw 2 lines per subject (though note: the project operated before it was possible to limit the user to a specific number of markings). The question tree is branched, but simply so: the first question is a Yes/No question, and if you answer No you move on to the next subject, and if you answer Yes you answer all the remaining questions (including the drawing task).
 
@@ -13,3 +13,5 @@ So, the scripts here are meant to aggregate the line drawings from the drawing t
  - `choose_line_length_width.py` - This takes the output of the clustering algorithm and decides, for each subject, whether it has reliable measurements, and if so, which measurements are the length and which are the width. It then writes to a file that has just a length and a width per subject (if it's appropriate for the subject to have measurements - not all of them actually have the feature).
 
  - `draw_lines_on_images.py` - I was really not sure which of the clustering methods (single, complete, average or ward) would produce the best results for me, so I wrote this code to intake the results of each method and produce one big mosaic-image per subject that had the raw drawings and the aggregated drawings from each method, plus the overall properties of the classification (how many people said it had the feature etc). This program makes a LOT of image files - the project had something like 5000 subjects with aggregated markings.
+
+Hopefully the code itself is reasonably well documented, but post an [issue](https://github.com/zooniverse/Data-digging/issues) and tag @vrooje if you have questions that don't have clear answers from trying out/looking at the code.
