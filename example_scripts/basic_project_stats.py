@@ -300,14 +300,13 @@ if time_elapsed:
 
     # throw away absurd time counts: accept lengths between 0 < dt < 30 minutes
     # anything outside that is either a wrongly reported time or the user walked away from their computer
-
     ok_times = (classifications.class_t_length > np.timedelta64(0, 's')) & (classifications.class_t_length < np.timedelta64(30, 'm'))
 
     n_t_ok = sum(ok_times)
 
     time_spent_classifying = np.sum(classifications['class_t_length'][ok_times])
 
-    print("Based on %d classifications (%.1f) where we can probably trust the classification durations,\nthe classifiers spent a total of %.2f days classifying in the project." % (n_t_ok, float(n_t_ok)/float(n_class_tot)*100., time_spent_classifying / np.timedelta64(1, 'D')))
+    print("Based on %d classifications (%.1f\%) where we can probably trust the\nclassification durations, the classifiers spent a total of %.2f days classifying\nin the project." % (n_t_ok, float(n_t_ok)/float(n_class_tot)*100., time_spent_classifying / np.timedelta64(1, 'D')))
 
     mean_t_class   =   np.mean(classifications['class_t_length'][ok_times])
     median_t_class = np.median(classifications['class_t_length'][ok_times])
