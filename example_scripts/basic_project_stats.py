@@ -307,7 +307,7 @@ if time_elapsed:
 
     time_spent_classifying = np.sum(classifications['class_t_length'][ok_times])
 
-    print("Based on %d classifications (%.1f) where we can probably trust the classification durations, \nthe classifiers spent a total of %.2f days classifying in the project." % (n_t_ok, float(n_t_ok)/float(n_class_tot)*100., time_spent_classifying / np.timedelta64(1, 'D')))
+    print("Based on %d classifications (%.1f) where we can probably trust the classification durations,\nthe classifiers spent a total of %.2f days classifying in the project." % (n_t_ok, float(n_t_ok)/float(n_class_tot)*100., time_spent_classifying / np.timedelta64(1, 'D')))
 
     mean_t_class   =   np.mean(classifications['class_t_length'][ok_times])
     median_t_class = np.median(classifications['class_t_length'][ok_times])
