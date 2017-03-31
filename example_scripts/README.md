@@ -9,6 +9,12 @@ Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in
 
 More details on the general scripts in this directory:
 
+ - `active_users_timeseries.py` - makes a classification and user count timeseries, binned hourly, for logged-in and non-logged-in users. Outputs to files:
+    - A csv file containing the timeseries
+    - a plot of classifications per hour, with different shadings for logged-in and not-logged-in users (pdf and png)
+    - a plot of active users per hour, with different shadings for logged-in and not-logged-in users (pdf and png)
+    - a plot of the fraction of logged-in classifications and users per hour (pdf and png)
+
  - `basic_project_stats.py` - computes basic statistics from a raw classification export file. Run without any inputs to see usage details. Outputs to screen:
     - Total number of classifications
     - Total number of classifiers (registered and unregistered)
@@ -16,6 +22,7 @@ More details on the general scripts in this directory:
     - Stats on classifications per user
     - Top 10 most prolific classifiers (note: for your edification only; I strongly recommend *against* publishing this)
     - Gini coefficient for classifications (more details on this in the code, as comments)
+    - [optional] total human effort expended by classifiers in the project
 
    This pays no attention to separate workflows or versions, so if you want those separated you will need to save a subset of the raw classification exports to a new csv file with the same format.
 
