@@ -160,9 +160,9 @@ use it if we don't have to.
 cols_keep = ["user_name", "user_id", "workflow_id", "workflow_version", "created_at", "metadata", "subject_ids"]
 classifications = pd.read_csv(classfile_in, usecols=cols_keep)
 
-classifications['version_int'] = [int(q) for q in classifications.workflow_version]
-
+# now restrict classifications to a particular workflow id/version if requested
 if (workflow_id > 0) | (workflow_version > 0):
+
     # only keep the stuff that matches these workflow properties
     if (workflow_id > 0):
 
@@ -174,6 +174,8 @@ if (workflow_id > 0) | (workflow_version > 0):
         in_workflow = np.array([True for q in classifications.workflow_id])
 
     if (workflow_version > 0):
+
+        classifications['version_int'] = [int(q) for q in classifications.workflow_version]
 
         print("Considering only major workflow version %d" % int(workflow_version))
 
@@ -196,12 +198,13 @@ else:
     #classifications = classifications_all
 
     workflow_ids = classifications.workflow_id.unique()
-    classifications['version_int'] = [int(q) for q in classifications.workflow_version]
-    version_ints = classifications.version_int.unique()
+    # this takes too much CPU time just for a print statement. Just use float versions
+    #classifications['version_int'] = [int(q) for q in classifications.workflow_version]
+    version_ints = classifications.workflow_version.unique()
 
     print("Considering all classifications in workflow ids:")
     print(workflow_ids)
-    print(" and workflow_versions (major only):")
+    print(" and workflow_versions:")
     print(version_ints)
 
 
