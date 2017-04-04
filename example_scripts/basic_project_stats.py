@@ -15,8 +15,13 @@ except:
     print("    workflow_version=M")
     print("       specify the program should only consider classifications from workflow version M")
     print("       (note the program will only consider the major version, i.e. the integer part)")
+    print("    outfile_csv=filename.csv")
+    print("       if you want the program to save a sub-file with only classification info from the workflow specified, give the filename here")
     print("    --time_elapsed")
     print("       specify the program should compute classification durations and total classification work effort")
+    print("    --remove_duplicates")
+    print("       remove duplicate classifications (subject-user pairs) before analysis.")
+    print("       memory-intensive for big files; probably best to pair with outfile_csv so you save the output.")
     print("\nAll output will be to stdout (about a paragraph worth).\n")
     sys.exit(0)
 
@@ -34,6 +39,13 @@ workflow_id      = -1
 workflow_version = -1
 # by default we won't worry about computing how much time effort the volunteers cumulatively spent
 time_elapsed = False
+# by default we won't write the subset of classifications we used to a new csv file
+output_csv = False
+# by default we'll ignore the possibility of duplicate classifications
+# note duplicates are relatively rare, usually <2% of all classifications
+# the Zooniverse has squashed several bugs related to this, but some still
+# happen client-side and there's nothing we can do about that.
+remove_duplicates = False
 
 # check for other command-line arguments
 if len(sys.argv) > 2:
@@ -45,8 +57,13 @@ if len(sys.argv) > 2:
             workflow_id = int(arg[1])
         elif arg[0] == "workflow_version":
             workflow_version = float(arg[1])
+        elif arg[0] == "outfile_csv":
+            outfile_csv = arg[1]
+            output_csv  = True
         elif arg[0] == "--time_elapsed":
             time_elapsed = True
+        elif arg[0] == "--remove_duplicates":
+            remove_duplicates = True
 
 
 
@@ -157,7 +174,7 @@ Apologies for doing this, but subject_data contains the whole manifest so for
 big projects with big catalogs it can take up a lot of memory, so we don't want to
 use it if we don't have to.
 '''
-cols_keep = ["user_name", "user_id", "workflow_id", "workflow_version", "created_at", "metadata", "subject_ids"]
+cols_keep = ["classification_id", "user_name", "user_id", "user_ip", "workflow_id", "workflow_version", "created_at", "metadata", "subject_ids"]
 classifications = pd.read_csv(classfile_in, usecols=cols_keep)
 
 # now restrict classifications to a particular workflow id/version if requested
@@ -207,6 +224,31 @@ else:
     print(" and workflow_versions:")
     print(version_ints)
 
+# if we've been asked to remove duplicates, do that now
+if remove_duplicates:
+    '''
+    a duplicate can be that the classification id is submitted twice by the client
+    but it can also be that the classifier classified the same subject twice in different classification_ids.
+
+    So identify duplicates based on username and subject id, not based on classification_id.
+    '''
+    subj_classifications = classifications.groupby('user_name subject_ids'.split())
+
+    n_class = len(classifications)
+    # just take the first of each of the groups
+    classifications_nodups = subj_classifications.head(1)
+    n_class_nodup = len(classifications_nodups)
+
+    n_dups = n_class - n_class_nodup
+
+    if n_dups == 0:
+        print("Searched for duplicate classifications; none found.")
+    else:
+        print("Found %d duplicate classifications (%.2f percent of total). Removing." % (n_dups, float(n_dups)/float(n_class)*100.0))
+        classifications = pd.DataFrame(classifications_nodups)
+
+    del classifications_nodups
+    gc.collect()
 
 
 # first, extract the started_at and finished_at from the metadata column
@@ -218,8 +260,12 @@ first_class_day = min(classifications.created_day).replace(' ', '')
 last_class_day  = max(classifications.created_day).replace(' ', '')
 
 
-# save processing time and memory in the groupby.apply(); only keep the columns we're going to use
-cols_used = ["user_name", "user_id", "created_at", "created_day", "meta_json", "subject_ids"]
+# save processing time and memory in the groupby.apply(); only keep the columns we're going to use or want to save
+if output_csv:
+    # if we'll be writing to a file at the end of this we need to save a few extra columns
+    cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "meta_json", "subject_ids", "workflow_id", "workflow_version"]
+else:
+    cols_used = ["user_name", "user_id", "created_at", "created_day", "meta_json", "subject_ids"]
 classifications = classifications[cols_used]
 # collect() calls PyInt_ClearFreeList(), so explicitly helps free some active memory
 gc.collect()
@@ -267,6 +313,14 @@ n_reg   = n_users_tot - n_unreg
 nclass_byuser = by_user.created_at.aggregate('count')
 nclass_byuser_ranked = nclass_byuser.copy()
 nclass_byuser_ranked.sort_values(inplace=True, ascending=False)
+
+# write this to a file, so you don't have to re-calculate it later
+nclass_byuser_outfile = classfile_in.replace(".csv", "_nclass_byuser_ranked.csv")
+# don't accidentally overwrite the classifications file just because someone
+# renamed it to not end in .csv
+if nclass_byuser_outfile == classfile_in:
+    nclass_byuser_outfile = "project_nclass_byuser_ranked.csv"
+nclass_byuser.to_csv(nclass_byuser_outfile)
 
 # very basic stats
 nclass_med    = np.median(nclass_byuser)
@@ -355,6 +409,19 @@ if time_elapsed:
 
     print("\nIf we use the mean to extrapolate and include the %.1f percent of\nclassifications where the reported duration had an error, that means\nthe total time spent is equivalent to %.2f years of human effort, or\n%.2f years of FTE (1 person working 40 hours/week, no holiday.)\n" % ((1-frac_good_durations)*100., human_effort_extrap, human_effort_extrap * (24.*7.)/40.))
 
+if output_csv:
+    # free up what memory we can before doing this (matters for big files)
+    del ok_times
+    del sa_temp
+    del fa_temp
+    del nclass_byuser
+    del all_users
+    del subj_class
+    gc.collect()
 
+    classifications.to_csv(outfile_csv)
+    print("File with used subset of classification info written to %s ." % outfile_csv)
+
+print("File with ranked list of user classification counts written to %s ." % nclass_byuser_outfile)
 
 #end
