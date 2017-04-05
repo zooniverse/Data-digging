@@ -154,6 +154,17 @@ def gini(list_of_values):
 #################################################################################
 
 
+def get_duplicate_ids(grp):
+    # groupbys and dfs have slightly different indexing and just NOPE
+    thegrp = pd.DataFrame(grp)
+
+    if len(thegrp) == 1:
+        return
+    else:
+        # we have a duplicate set, so return the details
+        return thegrp
+
+
 
 
 # Begin the main stuff
@@ -209,6 +220,8 @@ if (workflow_id > 0) | (workflow_version > 0):
         # select the subset of classifications
         classifications = classifications[in_workflow & in_version]
 
+    del in_workflow
+    del in_version
 
 else:
     # just use everything
@@ -244,9 +257,27 @@ if remove_duplicates:
     if n_dups == 0:
         print("Searched for duplicate classifications; none found.")
     else:
-        print("Found %d duplicate classifications (%.2f percent of total). Removing." % (n_dups, float(n_dups)/float(n_class)*100.0))
+        duplicate_outfile = classfile_in.replace(".csv", "_duplicated_only.csv")
+        if duplicate_outfile == classfile_in:
+            duplicate_outfile += "_duplicated_only.csv"
+
+        print("Found %d duplicate classifications (%.2f percent of total)." % (n_dups, float(n_dups)/float(n_class)*100.0))
+
+        # get the duplicate classifications and save them before we remove them
+        class_dups = pd.DataFrame(subj_classifications.apply(get_duplicate_ids))
+        is_a_dup = [np.invert(np.isnan(q)) for q in class_dups.workflow_id]
+        class_dups = class_dups[is_a_dup]
+
+        class_dups.to_csv(duplicate_outfile)
+        #print(class_dups.head(3))
+
         classifications = pd.DataFrame(classifications_nodups)
 
+        del class_dups
+        del is_a_dup
+        print("Duplicates removed from analysis.")
+
+    del subj_classifications
     del classifications_nodups
     gc.collect()
 
@@ -294,9 +325,12 @@ gc.collect()
 #classifications.set_index('created_at_ts', inplace=True)
 
 
+# get some user information
 all_users = classifications.user_name.unique()
 by_user = classifications.groupby('user_name')
 
+# also count IP addresses
+n_ip = len(classifications.user_ip.unique())
 
 # get total classification and user counts
 n_class_tot = len(classifications)
@@ -330,7 +364,7 @@ nclass_mean   = np.mean(nclass_byuser)
 nclass_gini   = gini(nclass_byuser)
 
 print("\nOverall:\n\n%d classifications of %d subjects by %d classifiers," % (n_class_tot,n_subj_tot,n_users_tot))
-print("%d registered and %d unregistered.\n" % (n_reg,n_unreg))
+print("%d logged in and %d not logged in, from %d unique IP addresses\n" % (n_reg,n_unreg,n_ip))
 print("That's %.2f classifications per subject on average (median = %.1f)." % (subj_class_mean, subj_class_med))
 print("The most classified subject has %d classifications; the least-classified subject has %d.\n" % (subj_class_max,subj_class_min))
 print("Median number of classifications per user: %.2f" %nclass_med)
@@ -346,6 +380,7 @@ if time_elapsed:
     # free up some memory
     # do this inside the if because if we're not computing times then the program
     # is about to end so this memory will be freed up anyway
+    del unregistered
     del by_user
     gc.collect()
 
@@ -423,5 +458,9 @@ if output_csv:
     print("File with used subset of classification info written to %s ." % outfile_csv)
 
 print("File with ranked list of user classification counts written to %s ." % nclass_byuser_outfile)
+
+if remove_duplicates & (n_dups > 0):
+    print("Saved info for all classifications that have duplicates to %s ." % duplicate_outfile)
+
 
 #end
