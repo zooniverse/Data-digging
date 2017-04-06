@@ -372,7 +372,8 @@ print("Mean number of classifications per user: %.2f" % nclass_mean)
 print("\nTop 10 most prolific classifiers:")
 print(nclass_byuser_ranked.head(10))
 print("\n\nGini coefficient for classifications by user: %.2f" % nclass_gini)
-print("\nClassifications were collected between %s and %s.\n" % (first_class_day, last_class_day))
+print("\nClassifications were collected between %s and %s." % (first_class_day, last_class_day))
+print("The highest classification id considered here is %d.\n" % max(classifications.classification_id))
 
 
 # if the input specified we should compute total time spent by classifiers, compute it
