@@ -7,6 +7,7 @@ The inputs needed are:
   [optional] the workflow id
   [optional] the workflow version (only the major (int) version needed)
   [optional] the output filename.
+  [optional] a flag to let the program know to just make plots, don't re-calculate
 
 The program takes snapshots of the classification timeline in units of hours, and over that hour it simply computes the number of classifications submitted and the number of classifiers (registered and unregistered) who submitted the classifications. It outputs these timeseries to a CSV file.
 
@@ -33,6 +34,9 @@ except:
     print("       be based on the input filename, e.g. if your input file is")
     print("       my-project-classifications.csv, the output file name will be")
     print("       my-project-classifications_active_users_timeseries.csv.")
+    print("    --plots_only")
+    print("       if specified, the program won't re-calculate the time series")
+    print("       and will instead just read in the outfile and re-make plots.")
     sys.exit(0)
 
 
@@ -73,6 +77,9 @@ plt.rcParams.update(params)
 workflow_id      = -1
 workflow_version = -1
 
+# default mode is to calculate the timeseries afresh
+plot_only = False
+
 outfile = classfile_in.replace(".csv", "_active_users_timeseries.csv")
 # if the input filename doesn't have ".csv" in it you might end up overwriting
 # the input file with the output file and that would be bad; don't do that.
@@ -90,149 +97,160 @@ if len(sys.argv) > 2:
     for i_arg, argstr in enumerate(sys.argv[2:]):
         arg = argstr.split('=')
 
-        if arg[0]   == "--workflow_id":
+        if arg[0]   == "workflow_id":
             workflow_id = int(arg[1])
             print("Restricting classifications to workflow id: %d" % workflow_id)
-        elif arg[0] == "--workflow_version":
+        elif arg[0] == "workflow_version":
             workflow_version = float(arg[1])
             print("Restricting classifications to workflow version: %d" % int(workflow_version))
-        elif arg[0] == "--outfile":
+        elif arg[0] == "outfile":
             outfile = arg[1]
+        elif arg[0] == "--plots_only":
+            plot_only = True
 
 print("File to be written: %s" % outfile)
 
+if not plot_only:
+    print("Reading classifications...")
 
-print("Reading classifications...")
+    #classifications = pd.read_csv(classfile_in)
+    # the above will work but uses a LOT of memory for projects with > 1 million
+    # classifications. Nothing here uses the actual classification data so don't read it
+    cols_keep = ["user_name", "user_id", "user_ip", "workflow_id", "workflow_version", "created_at"]
+    classifications = pd.read_csv(classfile_in, usecols=cols_keep)
 
-#classifications = pd.read_csv(classfile_in)
-# the above will work but uses a LOT of memory for projects with > 1 million
-# classifications. Nothing here uses the actual classification data so don't read it
-cols_keep = ["user_name", "user_id", "user_ip", "workflow_id", "workflow_version", "created_at"]
-classifications = pd.read_csv(classfile_in, usecols=cols_keep)
+    # now restrict classifications to a particular workflow id/version if requested
+    if (workflow_id > 0) | (workflow_version > 0):
 
-# now restrict classifications to a particular workflow id/version if requested
-if (workflow_id > 0) | (workflow_version > 0):
+        # only keep the stuff that matches these workflow properties
+        if (workflow_id > 0):
 
-    # only keep the stuff that matches these workflow properties
-    if (workflow_id > 0):
+            #print("Considering only workflow id %d" % workflow_id)
 
-        #print("Considering only workflow id %d" % workflow_id)
+            in_workflow = classifications.workflow_id == workflow_id
+        else:
+            # the workflow id wasn't specified, so just make an array of true
+            in_workflow = np.array([True for q in classifications.workflow_id])
 
-        in_workflow = classifications.workflow_id == workflow_id
+        if (workflow_version > 0):
+
+            classifications['version_int'] = [int(q) for q in classifications.workflow_version]
+
+            #print("Considering only major workflow version %d" % int(workflow_version))
+
+            # we only care about the major workflow version, not the minor version
+            in_version = classifications.version_int == int(workflow_version)
+        else:
+            in_version = np.array([True for q in classifications.workflow_version])
+
+
+        if (sum(in_workflow & in_version) == 0):
+            print("ERROR: your combination of workflow_id and workflow_version does not exist!\nIgnoring workflow id/version request and computing stats for ALL classifications instead.")
+            #classifications = classifications_all
+        else:
+            # select the subset of classifications
+            classifications = classifications[in_workflow & in_version]
+
+
     else:
-        # the workflow id wasn't specified, so just make an array of true
-        in_workflow = np.array([True for q in classifications.workflow_id])
-
-    if (workflow_version > 0):
-
-        classifications['version_int'] = [int(q) for q in classifications.workflow_version]
-
-        #print("Considering only major workflow version %d" % int(workflow_version))
-
-        # we only care about the major workflow version, not the minor version
-        in_version = classifications.version_int == int(workflow_version)
-    else:
-        in_version = np.array([True for q in classifications.workflow_version])
-
-
-    if (sum(in_workflow & in_version) == 0):
-        print("ERROR: your combination of workflow_id and workflow_version does not exist!\nIgnoring workflow id/version request and computing stats for ALL classifications instead.")
+        # just use everything
         #classifications = classifications_all
-    else:
-        # select the subset of classifications
-        classifications = classifications[in_workflow & in_version]
 
+        workflow_ids = classifications.workflow_id.unique()
+        # this takes too much CPU time just for a print statement. Just use float versions
+        #classifications['version_int'] = [int(q) for q in classifications.workflow_version]
+        version_ints = classifications.workflow_version.unique()
 
-else:
-    # just use everything
-    #classifications = classifications_all
-
-    workflow_ids = classifications.workflow_id.unique()
-    # this takes too much CPU time just for a print statement. Just use float versions
-    #classifications['version_int'] = [int(q) for q in classifications.workflow_version]
-    version_ints = classifications.workflow_version.unique()
-
-    print("Considering all classifications in workflow ids:")
-    print(workflow_ids)
-    print(" and workflow_versions:")
-    print(version_ints)
+        print("Considering all classifications in workflow ids:")
+        print(workflow_ids)
+        print(" and workflow_versions:")
+        print(version_ints)
 
 
 
 
-print("Creating timeseries...")#,datetime.datetime.now().strftime('%H:%M:%S.%f')
+    print("Creating timeseries...")#,datetime.datetime.now().strftime('%H:%M:%S.%f')
 
-ca_temp = classifications['created_at'].copy()
+    ca_temp = classifications['created_at'].copy()
 
-# Do these separately so you can track errors to a specific line
-# Try the format-specified ones first (because it's faster, if it works)
-try:
-    classifications['created_at_ts'] = pd.to_datetime(ca_temp, format='%Y-%m-%d %H:%M:%S %Z')
-except Exception as the_error:
-    #print "Oops:\n", the_error
+    # Do these separately so you can track errors to a specific line
+    # Try the format-specified ones first (because it's faster, if it works)
     try:
-        classifications['created_at_ts'] = pd.to_datetime(ca_temp, format='%Y-%m-%d %H:%M:%S')
+        classifications['created_at_ts'] = pd.to_datetime(ca_temp, format='%Y-%m-%d %H:%M:%S %Z')
     except Exception as the_error:
         #print "Oops:\n", the_error
-        classifications['created_at_ts'] = pd.to_datetime(ca_temp)
-        # no except for this because if it fails the program really should exit anyway
+        try:
+            classifications['created_at_ts'] = pd.to_datetime(ca_temp, format='%Y-%m-%d %H:%M:%S')
+        except Exception as the_error:
+            #print "Oops:\n", the_error
+            classifications['created_at_ts'] = pd.to_datetime(ca_temp)
+            # no except for this because if it fails the program really should exit anyway
 
 
-# index this into a timeseries
-# this means the index might no longer be unique, but it has many advantages
-classifications.set_index('created_at_ts', inplace=True, drop=False)
+    # index this into a timeseries
+    # this means the index might no longer be unique, but it has many advantages
+    classifications.set_index('created_at_ts', inplace=True, drop=False)
 
-# get the first and last classification timestamps
-first_class = min(classifications.created_at_ts)
-last_class  = max(classifications.created_at_ts)
+    # get the first and last classification timestamps
+    first_class = min(classifications.created_at_ts)
+    last_class  = max(classifications.created_at_ts)
 
-hour_start_str = first_class.strftime('%Y-%m-%d %H:00:00')
-hour_end_str   =  last_class.strftime('%Y-%m-%d %H:00:00')
+    hour_start_str = first_class.strftime('%Y-%m-%d %H:00:00')
+    hour_end_str   =  last_class.strftime('%Y-%m-%d %H:00:00')
 
-hour_start = pd.to_datetime(hour_start_str, format='%Y-%m-%d %H:%M:%S')
-hour_end   = pd.to_datetime(hour_end_str,   format='%Y-%m-%d %H:%M:%S') + np.timedelta64(1, 'h')
+    hour_start = pd.to_datetime(hour_start_str, format='%Y-%m-%d %H:%M:%S')
+    hour_end   = pd.to_datetime(hour_end_str,   format='%Y-%m-%d %H:%M:%S') + np.timedelta64(1, 'h')
 
-# writing to a file as we go turns out to be faster
-fout = open(outfile, "w")
-fout.write("time_start,time_end,n_class_total,n_class_registered,n_class_unregistered,n_users_total,n_users_registered,n_users_unregistered\n")
+    # writing to a file as we go turns out to be faster
+    fout = open(outfile, "w")
+    fout.write("time_start,time_end,n_class_total,n_class_registered,n_class_unregistered,n_users_total,n_users_registered,n_users_unregistered\n")
 
-the_time = hour_start
-dt = np.timedelta64(1, 'h')
+    the_time = hour_start
+    # testing purposes
+    #the_time = pd.to_datetime("2017-04-04 00:00:00", format='%Y-%m-%d %H:%M:%S')
+    dt = np.timedelta64(1, 'h')
 
-while the_time < hour_end:
-    # pick just the classifications in this time period
-    the_time_hi = the_time + dt
-    subclass = classifications[(classifications.created_at_ts >= the_time) & (classifications.created_at_ts < the_time_hi)]
+    while the_time < hour_end:
+        # pick just the classifications in this time period
+        the_time_hi = the_time + dt
+        subclass = classifications[(classifications.created_at_ts >= the_time) & (classifications.created_at_ts < the_time_hi)]
 
-    # just the usernames
-    subusers = subclass.user_name.unique()
+        # just the usernames
+        subusers = subclass.user_name.unique()
 
-    # total classification count
-    n_class = len(subclass)
+        # total classification count
+        n_class = len(subclass)
 
-    # total user count
-    n_users = len(subusers)
+        if n_class > 0:
 
-    # identify registered and unregistered users
-    is_unregistered_user = np.array([q.startswith("not-logged-in") for q in subusers])
-    is_registered_user   = np.invert(is_unregistered_user)
-    n_users_unreg = sum(is_unregistered_user)
-    n_users_reg   = n_users - n_users_unreg
+            # total user count
+            n_users = len(subusers)
 
-    # count classifications by registered and unregistered users
-    is_unregistered_class = np.array([q.startswith("not-logged-in") for q in subclass.user_name])
-    is_registered_class   = np.invert(is_unregistered_class)
-    n_class_unreg = sum(is_unregistered_class)
-    n_class_reg   = n_class - n_class_unreg
+            # identify registered and unregistered users
+            is_unregistered_user = np.array([q.startswith("not-logged-in") for q in subusers])
+            is_registered_user   = np.invert(is_unregistered_user)
+            n_users_unreg = sum(is_unregistered_user)
+            n_users_reg   = n_users - n_users_unreg
 
-    fout.write("%s,%s,%d,%d,%d,%d,%d,%d\n" % (the_time.strftime('%Y-%m-%d %H:%M:%S'), the_time_hi.strftime('%Y-%m-%d %H:%M:%S'), n_class, n_class_reg, n_class_unreg, n_users, n_users_reg, n_users_unreg))
+            # count classifications by registered and unregistered users
+            is_unregistered_class = np.array([q.startswith("not-logged-in") for q in subclass.user_name])
+            is_registered_class   = np.invert(is_unregistered_class)
+            n_class_unreg = sum(is_unregistered_class)
+            n_class_reg   = n_class - n_class_unreg
+
+            fout.write("%s,%s,%d,%d,%d,%d,%d,%d\n" % (the_time.strftime('%Y-%m-%d %H:%M:%S'), the_time_hi.strftime('%Y-%m-%d %H:%M:%S'), n_class, n_class_reg, n_class_unreg, n_users, n_users_reg, n_users_unreg))
+        else:
+            # there weren't any classifications in this time period
+            # so everything is zero
+            fout.write("%s,%s,0,0,0,0,0,0\n" % (the_time.strftime('%Y-%m-%d %H:%M:%S'), the_time_hi.strftime('%Y-%m-%d %H:%M:%S')))
 
 
+        the_time += dt
+        # end of while loop
 
-    the_time += dt
-    # end of while loop
+    fout.close()
 
-fout.close()
+# end "if not plot_only"
 
 # now read in the csv and make a plot or two
 the_ts = pd.read_csv(outfile)
@@ -242,6 +260,26 @@ the_ts['hour_end'] = pd.to_datetime(t_temp, format='%Y-%m-%d %H:%M:%S')
 # get fraction of classifications and users that's from logged-in users
 the_ts['f_class_reg'] = the_ts['n_class_registered'].astype(float) / the_ts['n_class_total'].astype(float)
 the_ts['f_users_reg'] = the_ts['n_users_registered'].astype(float) / the_ts['n_users_total'].astype(float)
+
+# estimate some error bars on the fractions of classifications and users by
+# figuring out how the fractions would change if the logged-in classification/user
+# count for that time period changed by a particular amount
+dn_class = 25.
+dn_users = 5.
+the_ts['df_class_reg'] = dn_class / the_ts['n_class_total'].astype(float)
+the_ts['df_users_reg'] = dn_users / the_ts['n_users_total'].astype(float)
+
+# make sure you don't get error bars that take your fractions to < 0 or > 1
+the_ts['df_class_reg_hi'] = the_ts.df_class_reg * 1.0
+the_ts['df_class_reg_lo'] = the_ts.df_class_reg * 1.0
+the_ts.loc[(the_ts.f_class_reg + the_ts.df_class_reg_hi > 1.), 'df_class_reg_hi'] = 1. - the_ts.f_class_reg
+the_ts.loc[(the_ts.f_class_reg - the_ts.df_class_reg_lo < 0.), 'df_class_reg_lo'] = the_ts.f_class_reg
+
+the_ts['df_users_reg_hi'] = the_ts.df_users_reg.copy()
+the_ts['df_users_reg_lo'] = the_ts.df_users_reg.copy()
+the_ts.loc[(the_ts.f_users_reg + the_ts.df_users_reg_hi > 1.), 'df_users_reg_hi'] = 1. - the_ts.f_users_reg
+the_ts.loc[(the_ts.f_users_reg - the_ts.df_users_reg_lo < 0.), 'df_users_reg_lo'] = the_ts.f_users_reg
+
 
 
 # figure out what the output plot filenames will be
@@ -276,6 +314,7 @@ ymax = max(the_ts['n_class_total'])
 
 axt.set_ylim(ymin, ymax)
 
+axf.fill_between(np.array(the_ts['hour_end']), y1=np.array(the_ts['f_class_reg']-the_ts['df_class_reg_lo']), y2=np.array(the_ts['f_class_reg']+the_ts['df_class_reg_hi']), color=reg_color, alpha=0.15, label='_nolabel_')
 axf.plot(the_ts['hour_end'], the_ts['f_class_reg'], color=reg_color, marker='None')
 axf.set_ylabel('Logged-in classification fraction', fontsize=11)
 
@@ -285,7 +324,7 @@ cmin = the_ts['n_class_registered']*0
 #ax.plot(the_ts['hour_end'], the_ts['n_class_registered'],   marker='None', label='Classifications by registered users')
 #ax.plot(the_ts['hour_end'], the_ts['n_class_unregistered'], marker='None', label='Classifications by unregistered users')
 
-axt.fill_between(np.array(the_ts['hour_end']), y1=np.array(cmin), y2=np.array(the_ts['n_class_registered']), color=reg_color, alpha=0.5, label='Classifications by logged-in users')
+axt.fill_between(np.array(the_ts['hour_end']), y1=np.array(cmin), y2=np.array(the_ts['n_class_registered']), color=reg_color, alpha=0.5, label='_nolabel_')
 axt.fill_between(np.array(the_ts['hour_end']), y1=np.array(the_ts['n_class_registered']), y2=np.array(the_ts['n_class_total']), color=unreg_color, alpha=0.3, label='Classifications by not-logged-in users')
 
 axt.legend(frameon=False, loc=2, fontsize=11)
@@ -315,6 +354,7 @@ ymax = max(the_ts['n_users_total'])
 
 axt.set_ylim(ymin, ymax)
 
+axf.fill_between(np.array(the_ts['hour_end']), y1=np.array(the_ts['f_users_reg']-the_ts['df_users_reg_lo']), y2=np.array(the_ts['f_users_reg']+the_ts['df_users_reg_hi']), color=reg_color, alpha=0.15, label='_nolabel_')
 axf.plot(the_ts['hour_end'], the_ts['f_users_reg'], color=reg_color, marker='None')
 axf.set_ylabel('Logged-in user fraction', fontsize=11)
 
@@ -349,6 +389,10 @@ users_color = '#C73300'
 
 fig = plt.figure(figsize=(10,5))
 axf = fig.add_subplot(1,1,1)
+
+axf.fill_between(np.array(the_ts['hour_end']), y1=np.array(the_ts['f_class_reg']-the_ts['df_class_reg_lo']), y2=np.array(the_ts['f_class_reg']+the_ts['df_class_reg_hi']), color=class_color, alpha=0.15, label='_nolabel_')
+axf.fill_between(np.array(the_ts['hour_end']), y1=np.array(the_ts['f_users_reg']-the_ts['df_users_reg_lo']), y2=np.array(the_ts['f_users_reg']+the_ts['df_users_reg_hi']), color=users_color, alpha=0.15, label='_nolabel_')
+
 
 axf.plot(the_ts['hour_end'], the_ts['f_class_reg'], color=class_color, marker='None', label='Logged-in classification fraction')
 axf.plot(the_ts['hour_end'], the_ts['f_users_reg'], color=users_color, marker='None', label='Logged-in user fraction')
