@@ -31,7 +31,7 @@ import numpy as np  # works in 1.10.1
 import pandas as pd  # works in 0.13.1
 import datetime
 import dateutil.parser
-import json
+import json, ujson
 import gc
 
 # default value is not to care about workflow ID or version
@@ -156,7 +156,8 @@ def gini(list_of_values):
 
 def get_duplicate_ids(grp):
     # groupbys and dfs have slightly different indexing and just NOPE
-    thegrp = pd.DataFrame(grp)
+    #thegrp = pd.DataFrame(grp)
+    thegrp = grp
 
     if len(thegrp) == 1:
         return
@@ -166,6 +167,19 @@ def get_duplicate_ids(grp):
 
 
 
+
+def get_live_project(meta_json):
+    try:
+        return meta_json['live_project']
+    except:
+        # apparently some subject metadata doesn't have this? dunno?
+        return False
+
+def get_live_project_incl_missing(meta_json):
+    try:
+        return meta_json['live_project']
+    except:
+        return -1
 
 # Begin the main stuff
 
@@ -187,6 +201,8 @@ use it if we don't have to.
 '''
 cols_keep = ["classification_id", "user_name", "user_id", "user_ip", "workflow_id", "workflow_version", "created_at", "metadata", "subject_ids"]
 classifications = pd.read_csv(classfile_in, usecols=cols_keep)
+
+n_class_raw = len(classifications)
 
 # now restrict classifications to a particular workflow id/version if requested
 if (workflow_id > 0) | (workflow_version > 0):
@@ -237,6 +253,39 @@ else:
     print(" and workflow_versions:")
     print(version_ints)
 
+
+# Remove classifications collected before the project went Live
+# note: it makes logical sense to do this *before* we extract the classifications
+# from the workflow we care about, *but* the meta_json setting step (which we
+# need in order to extract Live project status) can take a while (up to ~minutes)
+# and adds to memory usage, so I'd rather do it after we've already culled
+# the table of potentially a lot of unused rows.
+# OTOH culling duplicates takes more time and memory than culling unused workflow
+# versions, so wait to do that until after we've removed non-Live classifications
+
+# first, extract the metadata column into a json we can read entries for
+#
+# ujson is quite a bit faster than json but seems to use a bit more memory as it works
+classifications['meta_json'] = [ujson.loads(q) for q in classifications.metadata]
+print(" Removing all non-live classifications...")
+
+# would that we could just do q['live_project'] but if that tag is missing for
+# any classifications (which it is in some cases) it crashes
+classifications['live_project']  = [get_live_project(q) for q in classifications.meta_json]
+
+# if this line gives you an error you've read in this boolean as a string
+# so need to convert "True" --> True and "False" --> False
+class_live = classifications[classifications.live_project].copy()
+n_class_thiswf = len(classifications)
+n_live = sum(classifications.live_project)
+n_notlive = n_class_thiswf - n_live
+# don't make a slice but also save memory
+classifications = pd.DataFrame(class_live)
+del class_live
+gc.collect()
+
+
+
 # if we've been asked to remove duplicates, do that now
 if remove_duplicates:
     '''
@@ -264,26 +313,55 @@ if remove_duplicates:
         print("Found %d duplicate classifications (%.2f percent of total)." % (n_dups, float(n_dups)/float(n_class)*100.0))
 
         # get the duplicate classifications and save them before we remove them
-        class_dups = pd.DataFrame(subj_classifications.apply(get_duplicate_ids))
-        is_a_dup = [np.invert(np.isnan(q)) for q in class_dups.workflow_id]
-        class_dups = class_dups[is_a_dup]
+        #class_dups = pd.DataFrame(subj_classifications.apply(get_duplicate_ids))
+
+        # if you want to keep a record of everything with just the dups flagged,
+        # this is your thing
+        #dups_flagged = pd.merge(classifications, classifications_nodups['classification_id subject_id'.split()], how='outer', on='classification_id', suffixes=('', '_2'), indicator=True)
+        # if you just need something that has only the dups in it, here you go
+        dups_only = classifications[~classifications.isin(classifications_nodups)].dropna(how='all')
+
+        # dups_only has the duplicates only - not the original classification in each set
+        # i.e. if classifications 123, 456, and 789 are all from the same user
+        # classifying the same subject, dups_only will only contain classifications
+        # 456 and 789. When we save the duplicate classifications we want to save
+        # the initial classification (that was later duplicated) as well, so we
+        # need to retrieve those.
+        # I don't see a really easy way to do it based on the groupby we already did
+        # (subj_classifications)
+        # so let's just define what identifies the duplicate (user_name + subject_ids)
+        # and pick them out.
+        # even for a reasonably big dataset this is relatively fast (seconds, not minutes)
+        dups_only['user_subj_pair'] = dups_only['user_name']+'_'+dups_only['subject_ids'].astype(int).astype(str)
+
+        # n_dup_pairs tracks unique user-subject pairs that were duplicated
+        dup_pairs = dups_only['user_subj_pair'].unique()
+        n_dup_pairs = len(dup_pairs)
+
+        classifications['user_subj_pair'] = classifications['user_name']+'_'+classifications['subject_ids'].astype(int).astype(str)
+
+        # this keeps things that are any part of a duplicate set, including first
+        is_a_dup = classifications['user_subj_pair'].isin(dup_pairs)
+
+        class_dups = classifications[is_a_dup].copy()
+        # counts any classification that is any part of a duplicate set
+        n_partofdup = len(class_dups)
 
         class_dups.to_csv(duplicate_outfile)
         #print(class_dups.head(3))
 
+        # now throw away the duplicates (but keep the first of each set) from
+        # the main classifications table
         classifications = pd.DataFrame(classifications_nodups)
 
         del class_dups
         del is_a_dup
-        print("Duplicates removed from analysis.")
+        print("Duplicates removed from analysis (%d unique user-subject pairs)." % n_dup_pairs)
 
     del subj_classifications
     del classifications_nodups
     gc.collect()
 
-
-# first, extract the started_at and finished_at from the metadata column
-classifications['meta_json'] = [json.loads(q) for q in classifications.metadata]
 
 classifications['created_day'] = [q[:10] for q in classifications.created_at]
 
@@ -447,9 +525,10 @@ if time_elapsed:
 
 if output_csv:
     # free up what memory we can before doing this (matters for big files)
-    del ok_times
-    del sa_temp
-    del fa_temp
+    if time_elapsed:
+        del ok_times
+        del sa_temp
+        del fa_temp
     del nclass_byuser
     del all_users
     del subj_class
