@@ -8,8 +8,8 @@ try:
     classfile_in = sys.argv[1]
 except:
     print("\nUsage: %s classifications_infile" % sys.argv[0])
-    print("      classifications_infile is a Zooniverse (Panoptes) classifications data export CSV.")
-    print("  Optional inputs (no spaces):")
+    print("      classifications_infile is a Zooniverse (Panoptes) classifications data export CSV.\n")
+    print("  Optional inputs:")
     print("    workflow_id=N")
     print("       specify the program should only consider classifications from workflow id N")
     print("    workflow_version=M")
@@ -22,7 +22,9 @@ except:
     print("    --remove_duplicates")
     print("       remove duplicate classifications (subject-user pairs) before analysis.")
     print("       memory-intensive for big files; probably best to pair with outfile_csv so you save the output.")
-    print("\nAll output will be to stdout (about a paragraph worth).\n")
+    print("    --keep_nonlive")
+    print("       by default the program ignores classifications made while the project wasn't 'Live'; setting this will keep them in.")
+    print("\nAll output will be to stdout (about 1-2 paragraphs' worth).\n")
     sys.exit(0)
 
 
@@ -46,6 +48,8 @@ output_csv = False
 # the Zooniverse has squashed several bugs related to this, but some still
 # happen client-side and there's nothing we can do about that.
 remove_duplicates = False
+# by default, restrict the analysis to "Live" classifications
+keep_nonlive = False
 
 # check for other command-line arguments
 if len(sys.argv) > 2:
@@ -64,6 +68,8 @@ if len(sys.argv) > 2:
             time_elapsed = True
         elif arg[0] == "--remove_duplicates":
             remove_duplicates = True
+        elif arg[0] == "--keep_nonlive":
+            keep_nonlive = True
 
 
 
@@ -267,22 +273,26 @@ else:
 #
 # ujson is quite a bit faster than json but seems to use a bit more memory as it works
 classifications['meta_json'] = [ujson.loads(q) for q in classifications.metadata]
-print(" Removing all non-live classifications...")
 
-# would that we could just do q['live_project'] but if that tag is missing for
-# any classifications (which it is in some cases) it crashes
-classifications['live_project']  = [get_live_project(q) for q in classifications.meta_json]
+if keep_nonlive:
+    print("Retaining all non-live classifications in analysis.")
+else:
+    # would that we could just do q['live_project'] but if that tag is missing for
+    # any classifications (which it is in some cases) it crashes
+    classifications['live_project']  = [get_live_project(q) for q in classifications.meta_json]
 
-# if this line gives you an error you've read in this boolean as a string
-# so need to convert "True" --> True and "False" --> False
-class_live = classifications[classifications.live_project].copy()
-n_class_thiswf = len(classifications)
-n_live = sum(classifications.live_project)
-n_notlive = n_class_thiswf - n_live
-# don't make a slice but also save memory
-classifications = pd.DataFrame(class_live)
-del class_live
-gc.collect()
+    # if this line gives you an error you've read in this boolean as a string
+    # so need to convert "True" --> True and "False" --> False
+    class_live = classifications[classifications.live_project].copy()
+    n_class_thiswf = len(classifications)
+    n_live = sum(classifications.live_project)
+    n_notlive = n_class_thiswf - n_live
+    print(" Removing %d non-live classifications..." % n_notlive)
+
+    # don't make a slice but also save memory
+    classifications = pd.DataFrame(class_live)
+    del class_live
+    gc.collect()
 
 
 
