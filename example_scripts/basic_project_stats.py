@@ -206,7 +206,11 @@ big projects with big catalogs it can take up a lot of memory, so we don't want 
 use it if we don't have to.
 '''
 cols_keep = ["classification_id", "user_name", "user_id", "user_ip", "workflow_id", "workflow_version", "created_at", "metadata", "subject_ids"]
-classifications = pd.read_csv(classfile_in, usecols=cols_keep)
+try:
+    classifications = pd.read_csv(classfile_in, usecols=cols_keep)
+except:
+    print("Some columns missing from classifications infile, reading without specifying columns (uses more memory)... ")
+    classifications = pd.read_csv(classfile_in)
 
 n_class_raw = len(classifications)
 
@@ -302,9 +306,9 @@ if remove_duplicates:
     a duplicate can be that the classification id is submitted twice by the client
     but it can also be that the classifier classified the same subject twice in different classification_ids.
 
-    So identify duplicates based on username and subject id, not based on classification_id.
+    So identify duplicates based on username + subject id + workflow info, not based on classification_id.
     '''
-    subj_classifications = classifications.groupby('user_name subject_ids'.split())
+    subj_classifications = classifications.groupby('user_name subject_ids workflow_id workflow_version'.split())
 
     n_class = len(classifications)
     # just take the first of each of the groups
@@ -342,13 +346,19 @@ if remove_duplicates:
         # so let's just define what identifies the duplicate (user_name + subject_ids)
         # and pick them out.
         # even for a reasonably big dataset this is relatively fast (seconds, not minutes)
-        dups_only['user_subj_pair'] = dups_only['user_name']+'_'+dups_only['subject_ids'].astype(int).astype(str)
+        try:
+            dups_only['user_subj_pair'] = dups_only['user_name']+'_'+dups_only['subject_ids'].astype(int).astype(str)+'_'+dups_only['workflow_id'].astype(str)+'v'+dups_only['workflow_version'].astype(str)
+        except:
+            dups_only['user_subj_pair'] = dups_only['user_name']+'_'+dups_only['subject_ids'].astype(str)+'_'+dups_only['workflow_id'].astype(str)+'v'+dups_only['workflow_version'].astype(str)
 
         # n_dup_pairs tracks unique user-subject pairs that were duplicated
         dup_pairs = dups_only['user_subj_pair'].unique()
         n_dup_pairs = len(dup_pairs)
 
-        classifications['user_subj_pair'] = classifications['user_name']+'_'+classifications['subject_ids'].astype(int).astype(str)
+        try:
+            classifications['user_subj_pair'] = classifications['user_name']+'_'+classifications['subject_ids'].astype(int).astype(str)+'_'+classifications['workflow_id'].astype(str)+'v'+classifications['workflow_version'].astype(str)
+        except:
+            classifications['user_subj_pair'] = classifications['user_name']+'_'+classifications['subject_ids'].astype(str)+'_'+classifications['workflow_id'].astype(str)+'v'+classifications['workflow_version'].astype(str)
 
         # this keeps things that are any part of a duplicate set, including first
         is_a_dup = classifications['user_subj_pair'].isin(dup_pairs)
@@ -382,9 +392,9 @@ last_class_day  = max(classifications.created_day).replace(' ', '')
 # save processing time and memory in the groupby.apply(); only keep the columns we're going to use or want to save
 if output_csv:
     # if we'll be writing to a file at the end of this we need to save a few extra columns
-    cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "meta_json", "subject_ids", "workflow_id", "workflow_version"]
+    cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "metadata", "meta_json", "subject_ids", "workflow_id", "workflow_version"]
 else:
-    cols_used = ["user_name", "user_id", "created_at", "created_day", "meta_json", "subject_ids"]
+    cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "meta_json", "subject_ids"]
 classifications = classifications[cols_used]
 # collect() calls PyInt_ClearFreeList(), so explicitly helps free some active memory
 gc.collect()
@@ -549,8 +559,9 @@ if output_csv:
 
 print("File with ranked list of user classification counts written to %s ." % nclass_byuser_outfile)
 
-if remove_duplicates & (n_dups > 0):
-    print("Saved info for all classifications that have duplicates to %s ." % duplicate_outfile)
+if remove_duplicates:
+    if (n_dups > 0):
+        print("Saved info for all classifications that have duplicates to %s ." % duplicate_outfile)
 
 
 #end
