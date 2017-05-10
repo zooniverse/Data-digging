@@ -24,6 +24,8 @@ except:
     print("       memory-intensive for big files; probably best to pair with outfile_csv so you save the output.")
     print("    --keep_nonlive")
     print("       by default the program ignores classifications made while the project wasn't 'Live'; setting this will keep them in.")
+    print("    --keep_allcols")
+    print("       by default the program only keeps columns required for stats; use this with a specified outfile_csv to save all columns, including annotations. (If you're not using outfile_csv this will just waste memory.)")
     print("\nAll output will be to stdout (about 1-2 paragraphs' worth).\n")
     sys.exit(0)
 
@@ -63,9 +65,10 @@ if len(sys.argv) > 2:
             workflow_id = int(arg[1])
         elif arg[0] == "workflow_version":
             workflow_version = float(arg[1])
-        elif arg[0] == "outfile_csv":
+        elif (arg[0] == "outfile_csv") | (arg[0] == "outfile"):
             outfile_csv = arg[1]
             output_csv  = True
+        elif arg[0] == "--keep_allcols":
             keep_allcols = True
         elif arg[0] == "--time_elapsed":
             time_elapsed = True
