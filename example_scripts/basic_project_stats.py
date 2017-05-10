@@ -50,6 +50,8 @@ output_csv = False
 remove_duplicates = False
 # by default, restrict the analysis to "Live" classifications
 keep_nonlive = False
+# by default, don't keep every column of the classifications when writing to an outfile
+keep_allcols = False
 
 # check for other command-line arguments
 if len(sys.argv) > 2:
@@ -64,6 +66,7 @@ if len(sys.argv) > 2:
         elif arg[0] == "outfile_csv":
             outfile_csv = arg[1]
             output_csv  = True
+            keep_allcols = True
         elif arg[0] == "--time_elapsed":
             time_elapsed = True
         elif arg[0] == "--remove_duplicates":
@@ -206,11 +209,20 @@ big projects with big catalogs it can take up a lot of memory, so we don't want 
 use it if we don't have to.
 '''
 cols_keep = ["classification_id", "user_name", "user_id", "user_ip", "workflow_id", "workflow_version", "created_at", "metadata", "subject_ids"]
-try:
-    classifications = pd.read_csv(classfile_in, usecols=cols_keep)
-except:
-    print("Some columns missing from classifications infile, reading without specifying columns (uses more memory)... ")
-    classifications = pd.read_csv(classfile_in)
+if not keep_allcols:
+    try:
+        classifications = pd.read_csv(classfile_in, usecols=cols_keep)
+    except:
+        print("Some columns missing from classifications infile, reading without specifying columns (uses more memory)... ")
+        classifications = pd.read_csv(classfile_in)
+else:
+    classifications = pd.read_csv(classfile_in, low_memory=False)
+    cols_used = classifications.columns.tolist()
+    cols_out  = classifications.columns.tolist()
+    if not 'created_day' in cols_used:
+        cols_used.append('created_day')
+    if not 'meta_json' in cols_used:
+        cols_used.append('meta_json')
 
 n_class_raw = len(classifications)
 
@@ -376,7 +388,7 @@ if remove_duplicates:
 
         del class_dups
         del is_a_dup
-        print("Duplicates removed from analysis (%d unique user-subject pairs)." % n_dup_pairs)
+        print("Duplicates removed from analysis (%d unique user-subject-workflow groups)." % n_dup_pairs)
 
     del subj_classifications
     del classifications_nodups
@@ -391,10 +403,12 @@ last_class_day  = max(classifications.created_day).replace(' ', '')
 
 # save processing time and memory in the groupby.apply(); only keep the columns we're going to use or want to save
 if output_csv:
-    # if we'll be writing to a file at the end of this we need to save a few extra columns
-    cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "metadata", "meta_json", "subject_ids", "workflow_id", "workflow_version"]
+    if not keep_allcols:
+        # if we'll be writing to a file at the end of this we need to save a few extra columns
+        cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "metadata", "meta_json", "subject_ids", "workflow_id", "workflow_version"]
 else:
-    cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "meta_json", "subject_ids"]
+    if not keep_allcols:
+        cols_used = ["classification_id", "user_name", "user_id", "user_ip", "created_at", "created_day", "meta_json", "subject_ids"]
 classifications = classifications[cols_used]
 # collect() calls PyInt_ClearFreeList(), so explicitly helps free some active memory
 gc.collect()
@@ -438,6 +452,10 @@ unregistered = [q.startswith("not-logged-in") for q in all_users]
 n_unreg = sum(unregistered)
 n_reg   = n_users_tot - n_unreg
 
+is_unreg_class = [q.startswith("not-logged-in") for q in classifications.user_name]
+n_unreg_class = sum(is_unreg_class)
+n_reg_class = n_class_tot - n_unreg_class
+
 # for the leaderboard, which I recommend project builders never make public because
 # Just Say No to gamification
 # But it's still interesting to see who your most prolific classifiers are, and
@@ -462,7 +480,8 @@ nclass_mean   = np.mean(nclass_byuser)
 nclass_gini   = gini(nclass_byuser)
 
 print("\nOverall:\n\n%d classifications of %d subjects by %d classifiers," % (n_class_tot,n_subj_tot,n_users_tot))
-print("%d logged in and %d not logged in, from %d unique IP addresses\n" % (n_reg,n_unreg,n_ip))
+print("%d logged in and %d not logged in, from %d unique IP addresses." % (n_reg,n_unreg,n_ip))
+print("%d classifications were from logged-in users, %d from not-logged-in users.\n" % (n_reg_class, n_unreg_class))
 print("That's %.2f classifications per subject on average (median = %.1f)." % (subj_class_mean, subj_class_med))
 print("The most classified subject has %d classifications; the least-classified subject has %d.\n" % (subj_class_max,subj_class_min))
 print("Median number of classifications per user: %.2f" %nclass_med)
@@ -554,7 +573,10 @@ if output_csv:
     del subj_class
     gc.collect()
 
-    classifications.to_csv(outfile_csv)
+    if keep_allcols:
+        classifications[cols_out].to_csv(outfile_csv)
+    else:
+        classifications.to_csv(outfile_csv)
     print("File with used subset of classification info written to %s ." % outfile_csv)
 
 print("File with ranked list of user classification counts written to %s ." % nclass_byuser_outfile)
