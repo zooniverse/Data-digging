@@ -2,9 +2,11 @@
 
 GZBL was launched the same day Panoptes launched (it was one of the 4 original projects). The project has 1 workflow, which combines question tasks and 1 marking task where users are asked to draw 2 lines per subject (though note: the project operated before it was possible to limit the user to a specific number of markings). The question tree is branched, but simply so: the first question is a Yes/No question, and if you answer No you move on to the next subject, and if you answer Yes you answer all the remaining questions (including the drawing task).
 
-We used the Zooniverse's [aggregation](https://github.com/zooniverse/aggregation) engine to aggregate the question-tree questions (we applied no user weighting). But on the drawing question, the aggregations from the generalized software just weren't quite right -- we needed slightly different settings, and there was also a bug present for the first few Zooniverse projects (including GZBL) that made the aggregation software (tested after the bug was fixed) less optimal.
+~We used the Zooniverse's [aggregation](https://github.com/zooniverse/aggregation) engine to aggregate the question-tree questions (we applied no user weighting). But~ We aggregate both the question and drawing tasks. Theoretically, these are both possible in the Zooniverse's aggregation engine, but for the question aggregation we wrote our own code in order to be ready to add user weighting later. On the drawing question, the aggregations from the generalized software just weren't quite right -- we needed slightly different settings, and there was also a bug present for the first few Zooniverse projects (including GZBL) that made the aggregation software (tested after the bug was fixed) less optimal.
 
-So, the scripts here are meant to aggregate the line drawings from the drawing task. They are:
+So, the scripts here are meant to aggregate all workflows, but most of the scripts work on the line drawings from the drawing task. They are:
+
+ - `aggregate_question_tasks.py` - Ingest the raw classifications export and use the utils in the `../` directory to read in the workflow information and aggregate the question tasks. This project only uses single-answer questions, so it doesn't need to aggregate question tasks where people could give multiple answers. 
 
  - `extract_line_drawings.py` - Ingest the raw classifications export and output a file containing one mark per line. So if a user drew 2 lines on a subject during a classification, the output file would have 2 extra rows as a result of that classification. The output of this script is used by subsequent scripts.
 

@@ -15,6 +15,12 @@ More details on the general scripts in this directory:
     - a plot of active users per hour, with different shadings for logged-in and not-logged-in users (pdf and png)
     - a plot of the fraction of logged-in classifications and users per hour (pdf and png)
 
+- `aggregate_question_utils.py` - utility functions for question task aggregation:
+    - meant to be imported by other codes
+    - breaks question annotations out of the raw "annotations" column of data export CSVs (deals with the JSON)
+    - aggregates question votes into vote fractions. Can be weighted or unweighted aggregation depending on how you populate the 'count' column of the classifications dataframe you pass it.
+    - example usage: see `galaxy_zoo_bar_lengths` folder.
+
  - `basic_project_stats.py` - computes basic statistics from a raw classification export file. Run without any inputs to see usage details. Outputs to screen:
     - Total number of classifications
     - Total number of classifiers (registered and unregistered)
@@ -24,11 +30,11 @@ More details on the general scripts in this directory:
     - Gini coefficient for classifications (more details on this in the code, as comments)
     - [optional] total human effort expended by classifiers in the project
 
-   This pays no attention to separate workflows or versions, so if you want those separated you will need to save a subset of the raw classification exports to a new csv file with the same format.
+    Run this program without any inputs to see its various options re: specifying workflow_ids, removing duplicate classifications, etc. There are enough possible variations (with the additional option to output a "cleaned" classification file) that this program is useful for filtering a full classification export into sub-files with, e.g., only the live, non-duplicate classifications for the workflow ID and version of your choice.
 
  - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
     - meant to be imported: `from get_workflow_info import get_workflow_info` 
-    - takes a dataframe containing the raw contents of a workflow export requested from the project builder
+    - takes dataframes containing the raw contents of workflow and workflow-contents exports requested from the project builder
     - returns a list of tasks and details about each of them. Details in the initial comments of the script.
 
  - `sessions_inproj_byuser.py` - computes classification and session statistics for classifiers. Run at the the command line without additional inputs to see the usage. *Output columns:*
