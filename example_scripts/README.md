@@ -30,7 +30,7 @@ More details on the general scripts in this directory:
     - Gini coefficient for classifications (more details on this in the code, as comments)
     - [optional] total human effort expended by classifiers in the project
 
-   This pays no attention to separate workflows or versions, so if you want those separated you will need to save a subset of the raw classification exports to a new csv file with the same format.
+    Run this program without any inputs to see its various options re: specifying workflow_ids, removing duplicate classifications, etc. There are enough possible variations (with the additional option to output a "cleaned" classification file) that this program is useful for filtering a full classification export into sub-files with, e.g., only the live, non-duplicate classifications for the workflow ID and version of your choice.
 
  - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
     - meant to be imported: `from get_workflow_info import get_workflow_info` 
