@@ -198,6 +198,22 @@ def get_workflow_info(workflow_df, workflow_cont_df, workflow_id, workflow_versi
                         if (deets_type == 'single') | (deets_type == 'multiple'):
                             workflow_info[deets_str+'_nanswers'] = len(tool['details'][k]['answers'])
 
+        elif task_type == 'survey':
+            # the workflow file contains a lot of info about the survey but I think we don't necessarily need to specify it all
+            workflow_info[task+'_nquestions'] = len(tasks[task]['questions'].keys())
+            workflow_info[task+'_nchoices']   = len(tasks[task]['choices'].keys())
+            workflow_info[task+'_choices']    = tasks[task]['choicesOrder']
+
+        elif task_type == 'shortcut':
+            # don't really do anything, because this should (?) be a single checkbox
+            # e.g. "Nothing here"
+            pass
+
+
+
+
+
+
         # now that we've looped through all tasks, save the list of task names too
         workflow_info['tasknames'] = tasknames
 
