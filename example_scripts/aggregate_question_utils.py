@@ -2,7 +2,8 @@ import sys, os, glob
 import pandas as pd, numpy as np
 import ujson
 import datetime
-from get_workflow_info import get_workflow_info, translate_non_alphanumerics, get_short_slug
+from ast import literal_eval
+from get_workflow_info import get_workflow_info, get_class_cols, translate_non_alphanumerics, get_short_slug
 
 
 ################################################################################
@@ -176,7 +177,6 @@ def getfrac(row, colname, colcount):
 
 
 
-
 ################################################################################
 
 #    Aggregate question vote fractions based on a dictionary of tasks
@@ -232,3 +232,138 @@ def aggregate_questions(classifications, theqdict, verbose=True):
     class_counts.fillna(0.0, inplace=True)
 
     return class_counts
+
+
+
+################################################################################
+
+#    Aggregate survey classifications based on a workflow definition dict
+
+################################################################################
+
+def aggregate_survey(grp, workflow_info):
+
+    #workflow_info = wf_info
+    # groupby() --> df because indexing etc is slightly different
+    subj = pd.DataFrame(grp)
+
+    # get the columns we'll be using based on the workflow info
+    class_cols = get_class_cols(workflow_info)
+
+    # initialize the dict that will hold the counts
+    theclass = {}
+    for col in class_cols:
+        theclass[col] = 0.0
+
+    # count the number of classifications for this subject
+    theclass['class_count'] = len(subj.classification_id.unique())
+
+    # now loop through tasks
+    for task in workflow_info['tasknames']:
+        # we will do something slightly different for the survey itself
+        # versus the "unlinked" task(s) e.g. "Nothing Here"
+        task_low = task.lower()
+        if workflow_info[task]['type'] == "survey":
+            # only deal with the choices we actually need for this subject
+            choicecol = "%s_choice" % task_low
+            choices = (subj[choicecol].unique()).tolist()
+            # ignore if there are empties, which read here as NaN
+            try:
+                choices.remove(np.nan)
+            except ValueError:
+                # if there aren't any NaNs in the list, carry on
+                pass
+
+            # make sure this task isn't empty
+            if (len(choices) > 0):
+
+                # get the questions we're working with
+                qcol  = []
+                qmult = []
+                for i_q in range(len(workflow_info[task]['questionsOrder'])):
+                    q = workflow_info[task]['questionsOrder'][i_q]
+                    #qcol[i_q] = "%s_%s" % (task_low, workflow_info[task]['questions'][q]['label_slug'])
+                    qcol.append(workflow_info[task]['questions'][q]['label_slug'])
+                    qmult.append(workflow_info[task]['questions'][q]['multiple'])
+
+
+                for choice in choices:
+                    # choice_slug will have the taskname prepended
+                    choice_slug = workflow_info[task]['choices'][choice]['label_slug']
+                    # only deal with the annotations that indicated this choice
+                    this_choice = subj[subj[choicecol] == choice]
+                    # count 'em up
+                    choice_count = float(len(this_choice))
+                    theclass["%s_count" % choice_slug] = choice_count
+
+                    # now deal with the questions for each choice
+                    for i_q in range(len(qcol)):
+                        q = workflow_info[task]['questionsOrder'][i_q]
+                        # the column we're saving to
+                        class_slug = "%s_%s" % (choice_slug, qcol[i_q])
+                        # the column we're reading from
+                        col_slug   = "%s_%s" % (task_low, workflow_info[task]['questions'][q]['label_slug'])
+
+                        # if this question requires a single answer, this is relatively easy
+                        if not qmult[i_q]:
+                            theclass["%s_count" % class_slug] = float(len(this_choice[col_slug]))
+
+                            by_ans = this_choice.groupby(col_slug)
+                            theans = this_choice[col_slug].unique()
+                            ans_count = by_ans['count'].aggregate('sum')
+                            for a in ans_count.index:
+                                a_str = a
+                                if not isinstance(a, basestring):
+                                    a_str = str(int(a))
+                                a_slug = workflow_info[task]['questions'][q]['answers'][a_str]['label_slug']
+                                colname = "%s_%s_count" % (choice_slug, a_slug)
+                                theclass[colname] = ans_count[a]
+                        else:
+                            # we need to deal with questions that can have multiple answers
+                            # we stored them as a list, but stringified
+                            try:
+                                ans_list = [literal_eval(t) for t in this_choice[col_slug].values]
+                                list_all = [item for sublist in ans_list for item in sublist]
+                            except:
+                                ans_list = [t for t in this_choice[col_slug].values]
+                                list_all = ans_list
+                            # this will flatten the list of lists
+
+                            adf = pd.DataFrame(list_all)
+                            adf.columns = ['ans']
+                            adf['count'] = np.ones_like(list_all, dtype=int)
+                            by_ans = adf.groupby('ans')
+                            ans_count = by_ans['count'].aggregate('sum')
+                            for a in ans_count.index:
+                                a_str = a
+                                if not isinstance(a, basestring):
+                                    a_str = str(int(a))
+                                a_slug = workflow_info[task]['questions'][q]['answers'][a_str]['label_slug']
+                                colname = "%s_%s_count" % (choice_slug, a_slug)
+                                theclass[colname] = ans_count[a]
+
+
+        elif workflow_info[task]['type'] == "shortcut":
+            # what columns and possible answers are we working with here?
+            #answers   = []
+            #anno_cols = []
+            for q in workflow_info[task]['answers']:
+                # the actual answer text
+                #answers.append(q['label'])
+                # the column name in the jailbroken annotations file
+                #anno_cols.append(q['label_slug'])
+                thecol = q['label_slug']
+
+                # the True values are already in there
+                x = subj[thecol].fillna(False)
+
+                thecount = float(sum(x))
+                theclass["%s_count" % thecol] = thecount
+                theclass["%s_frac"  % thecol] = thecount/theclass['class_count']
+
+
+    return pd.Series(theclass)
+
+
+
+#end
