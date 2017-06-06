@@ -3,6 +3,7 @@ import json
 import os
 import sys
 
+import numpy as np
 import pandas as pd
 
 try:
@@ -118,11 +119,13 @@ def cull_subject_ids(filename, w2s=None, overwrite=False, add=False):
 
 
 def add_to_subject_set(subject_set_id, subject_set_file):
-    """Add a 1 column file of subject_ids to a subject_set."""
+    """Import a 1 column file of subject_ids to a subject_set."""
+    lines = []
     subject_set = SubjectSet.find(subject_set_id)
     with open(subject_set_file) as subject_ids:
-        subject_set.add(subject_ids.read().splitlines())
-    return
+        lines.append(subject_ids.read().splitlines())
+
+    return subject_set.add(np.unique(lines))
 
 
 def cull_wf1(classifications_filename, wf1_filename, overwrite=False):
