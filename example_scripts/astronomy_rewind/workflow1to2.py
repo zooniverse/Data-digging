@@ -1,3 +1,24 @@
+"""
+Prepare astronomy rewind workflows 2a, 2b, and 2c.
+
+1. Cull classificatation file annotations by select question and output
+    subject_ids to file
+2. Connect to panoptes API though python client and add subject_ids in file to
+    new subject set. NOTE: New empty subject set must be created via web
+    interface, and ID hardcoded after ~line 111:
+    "# Empty set IDs created on the web interface"
+
+TO DO:
+1. Read username and password from file, not command line
+2. Overwrite option is too general, is used for both culling the raw
+    classification file and the subject_id files
+3. Possibly access the classifications server-side, that is not need to export
+    classification data.
+
+Usage:
+python workflow1to2.py -h
+"""
+
 import argparse
 import json
 import os
