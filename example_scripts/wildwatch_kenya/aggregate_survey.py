@@ -4,7 +4,7 @@ import ujson
 import datetime
 from ast import literal_eval
 from get_workflow_info import get_workflow_info, translate_non_alphanumerics, get_short_slug
-from aggregate_question_utils import breakout_anno, getfrac, aggregate_questions, write_class_row
+from aggregate_question_utils import breakout_anno, getfrac, aggregate_survey, write_class_row
 
 classfile      = 'wildwatch-kenya-classifications_test.csv'
 workflow_file  = 'wildwatch-kenya-workflows.csv'
