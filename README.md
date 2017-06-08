@@ -12,7 +12,7 @@ Below we describe the analysis components implemented in each processing script.
 
 Some issues that all or most of these scripts address:
  - extracting classification marks/answers from within the JSON fields of the CSV classification data exports
- - cleaning the classification export files: 
+ - cleaning the classification export files:
    - removing duplicate classifications (if they occur)
    - dealing with empty classifications (some projects throw them out, others count them as "nothing here" votes)
    - only including classifications from the most up-to-date workflow version(s)
@@ -31,12 +31,26 @@ The bespoke consensus and aggregation code written for this project is archived 
 
 *Marker type* -- line, text input attached to mark
 
+#### [Exoplanet Explorers](https://www.zooniverse.org/projects/ianc2/exoplanet-explorers)
+An exoplanet-finding project run as part of Stargazing Live.
+
+*Scripts* -- Aggregate simple question task (with weighting). Save outputs to Google Drive folder for easy data sharing. This script is adapted from the Pulsar Hunters aggregation script described below; it may be more generally applicable because it doesn't need a bunch of additional files with gold-standard data etc.
+
+*Marker Type* -- question task
+
 #### [Flying HI](https://www.zooniverse.org/projects/vrooje/flying-hi)
 A beta project to examine HI structures in the Milky Way.
 
 *Scripts* -- Extracts markings from classification file into individual files (ready for clustering).
 
 *Marker type* -- line, point, ellipse, text input attached to mark
+
+#### [Focus on Wildlife -- Cleveland Metroparks](https://www.zooniverse.org/projects/pat-lorch/focus-on-wildlife-cleveland-metroparks)
+A survey project run by Cleveland Metroparks.
+
+*Scripts* -- Adapts the survey aggregation script initially developed and tested for Wildwatch Kenya (described below)
+
+*Marker type* -- Survey
 
 #### [Galaxy Zoo Bar Lengths](https://www.zooniverse.org/projects/vrooje/galaxy-zoo-bar-lengths/)
 Answering questions about the presence of bar structures and marking bar dimensions.
@@ -75,6 +89,13 @@ Workflow #1: Yes/No if sea lions are present.
 *Scripts* -- 1) Extracts normal csv from embedded JSON. 2) Aggregates results.
 
 *Marker type* -- no marks, only question tasks
+
+#### [Wildwatch Kenya](https://www.zooniverse.org/projects/sandiegozooglobal/wildwatch-kenya)
+A survey of species from camera trap data in Kenya.
+
+*Scripts* -- Jailbreak survey annotations into a format more easily digestible by external scripts (1 line per species ID or "nothing here" classification), aggregate jailbroken annotations into a flattened CSV file with one line per subject. Also uses general utility scripts.
+
+*Marker type* -- Survey
 
 ### Older Scripts (Ouroboros-based)
 
