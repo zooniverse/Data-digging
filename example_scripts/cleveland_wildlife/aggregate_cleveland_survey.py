@@ -6,17 +6,16 @@ from ast import literal_eval
 from get_workflow_info import get_workflow_info, translate_non_alphanumerics, get_short_slug
 from aggregate_question_utils import breakout_anno_survey, getfrac, aggregate_survey, write_class_row
 
-classfile      = 'wildwatch-kenya-classifications_test.csv'
-workflow_file  = 'wildwatch-kenya-workflows.csv'
-workflow_cfile = 'wildwatch-kenya-workflow_contents.csv'
+classfile      = 'focus-on-wildlife-cleveland-metroparks-classifications.csv'
+workflow_file  = 'focus-on-wildlife-cleveland-metroparks-workflows.csv'
+workflow_cfile = 'focus-on-wildlife-cleveland-metroparks-workflow_contents.csv'
 
-workflow_id = 2030
-workflow_version = "301.76"
+workflow_id = 1432
+workflow_version = "478.99"
 
 annofile     = classfile.replace('.csv', '_annotations_1lineeach.csv')
 outfile      = classfile.replace('.csv', '_aggregated.csv')
 outfile_huge = classfile.replace('.csv', '_aggregated_kitchensink.csv')
-
 
 try:
     classfile = sys.argv[1]
@@ -131,9 +130,7 @@ for thecol in all_cols:
 class_agg.to_csv(outfile_huge)
 class_agg[use_cols].to_csv(outfile)
 
-
 print("\nAggregated classifications written to %s \n  (kitchen sink version: %s )\n" % (outfile, outfile_huge))
-
 
 # to do:
 # print a summary file, one line per subject, with all species idents for that subject
