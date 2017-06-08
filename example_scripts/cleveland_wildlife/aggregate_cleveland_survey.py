@@ -13,10 +13,6 @@ workflow_cfile = 'focus-on-wildlife-cleveland-metroparks-workflow_contents.csv'
 workflow_id = 1432
 workflow_version = "478.99"
 
-annofile     = classfile.replace('.csv', '_annotations_1lineeach.csv')
-outfile      = classfile.replace('.csv', '_aggregated.csv')
-outfile_huge = classfile.replace('.csv', '_aggregated_kitchensink.csv')
-
 try:
     classfile = sys.argv[1]
 except:
@@ -31,6 +27,10 @@ except:
     print("    If you don't specify an outfile_class or outfile_agg, the filenames\n    will be based on the input classfile name.")
     print("    If you vary the project from the suggested one above, you'll need to specify workflow files.\n")
     exit(0)
+
+annofile     = classfile.replace('.csv', '_annotations_1lineeach.csv')
+outfile      = classfile.replace('.csv', '_aggregated.csv')
+outfile_huge = classfile.replace('.csv', '_aggregated_kitchensink.csv')
 
 # check for other command-line arguments
 if len(sys.argv) > 2:
