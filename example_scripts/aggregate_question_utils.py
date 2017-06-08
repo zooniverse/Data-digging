@@ -80,6 +80,7 @@ def breakout_anno_survey(row, workflow_info, fp, classcols, thecols):
     for col in thecols:
         theclass[col] = ''
 
+    #print(workflow_info)
 
     for task in annotations:
         taskname = task['task']

@@ -68,6 +68,7 @@ def get_workflow_info(workflow_df, workflow_cont_df, workflow_id, workflow_versi
 
 
     # max length of a question label below
+    global maxlength
     maxlength = 35
 
     # get the major and minor workflow versions
