@@ -16,6 +16,8 @@ Some issues that all or most of these scripts address:
    - removing duplicate classifications (if they occur)
    - dealing with empty classifications (some projects throw them out, others count them as "nothing here" votes)
    - only including classifications from the most up-to-date workflow version(s)
+   
+ For R code that addresses these issues, please se www.github.com/aliburchard/DataProcessing.
 
 #### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
 Marking star cluster locations in Hubble Space Telescope images.
