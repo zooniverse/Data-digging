@@ -97,6 +97,11 @@ A survey of species from camera trap data in Kenya.
 
 *Marker type* -- Survey
 
+#### [Arizona Batwatch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch)
+Watch videos of bats flying around their roost and tag the behaviors that you see.
+
+*Scripts* -- to 1) turn original videos into smaller duration videos and populate a manifest and 2) upload subjects with manifest to Panoptes found in  [this repo](https://github.com/mcbouslog/ArizonaBatWatch).
+
 ### Older Scripts (Ouroboros-based)
 
 #### Galaxy Zoo: Misc
