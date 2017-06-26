@@ -17,7 +17,7 @@ Some issues that all or most of these scripts address:
    - dealing with empty classifications (some projects throw them out, others count them as "nothing here" votes)
    - only including classifications from the most up-to-date workflow version(s)
    
- For R code that addresses these issues, please se www.github.com/aliburchard/DataProcessing.
+ For R code that addresses these issues, please see www.github.com/aliburchard/DataProcessing.
 
 #### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
 Marking star cluster locations in Hubble Space Telescope images.
@@ -25,6 +25,11 @@ Marking star cluster locations in Hubble Space Telescope images.
 *Script* -- Creates CSV of circular marker info from simple marking workflow.
 
 *Marker type* -- circle
+
+#### [Arizona Batwatch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch)
+Watch videos of bats flying around their roost and tag the behaviors that you see.
+
+*Scripts* -- to 1) turn original videos into smaller duration videos and populate a manifest and 2) upload subjects with manifest to Panoptes found in  [this repo](https://github.com/mcbouslog/ArizonaBatWatch).
 
 #### [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war)
 The decoding the civil war project invites volunteers to transcribe contemporary, hand-written transcripts of telegrams sent between allies during the American Civil War. Portions of these transcripts are enciphered using whole-word substitutions. The ultimate goal of the project is to allow volunteers to identify these substituted words based on their contextual appropriateness.
@@ -98,11 +103,6 @@ A survey of species from camera trap data in Kenya.
 *Scripts* -- Jailbreak survey annotations into a format more easily digestible by external scripts (1 line per species ID or "nothing here" classification), aggregate jailbroken annotations into a flattened CSV file with one line per subject. Also uses general utility scripts.
 
 *Marker type* -- Survey
-
-#### [Arizona Batwatch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch)
-Watch videos of bats flying around their roost and tag the behaviors that you see.
-
-*Scripts* -- to 1) turn original videos into smaller duration videos and populate a manifest and 2) upload subjects with manifest to Panoptes found in  [this repo](https://github.com/mcbouslog/ArizonaBatWatch).
 
 ### Older Scripts (Ouroboros-based)
 
