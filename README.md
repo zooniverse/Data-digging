@@ -99,8 +99,15 @@ A survey of species from camera trap data in Kenya.
 
 ### Older Scripts (Ouroboros-based)
 
-#### Galaxy Zoo: Misc
+#### Galaxy Zoo
+
+##### Misc
 Includes scripts that generate progress reports for Ouroboros-based GZ project, and decision tree processing
 
-#### Galaxy Zoo: Talk
+##### Talk
 Scripts that compute statistics and analyzes Talk data for Ouroboros-based GZ project.
+
+##### Reduction
+Fairly general scripts to process Galaxy Zoo classification database dumps into
+vote fractions for each subject and match with subject metadata.  Note that
+this does not (yet) include debiasing.
