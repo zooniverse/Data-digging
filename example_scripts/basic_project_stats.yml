@@ -1,32 +1,11 @@
-name: python279_volcrowe
+name: py27
 channels:
 - defaults
 dependencies:
-- cycler=0.10.0=py27_0
-- freetype=2.5.5=1
-- jpeg=8d=1
-- lcms=1.19=0
-- libpng=1.6.22=0
 - matplotlib=1.5.1=np110py27_0
 - numpy=1.10.1=py27_0
-- openssl=1.0.2g=0
 - pandas=0.17.1=np110py27_0
-- pil=1.1.7=py27_2
-- pip=8.1.1=py27_0
-- pyparsing=2.1.4=py27_0
-- pyqt=4.11.4=py27_3
 - python=2.7.11=0
 - python-dateutil=2.4.2=py27_0
-- pytz=2015.7=py27_0
-- qt=4.8.7=3
-- readline=6.2=2
-- requests=2.9.1=py27_0
 - setuptools=20.3=py27_0
-- sip=4.16.9=py27_0
-- six=1.10.0=py27_0
-- sqlite=3.9.2=0
-- tk=8.5.18=0
-- wheel=0.29.0=py27_0
-- zlib=1.2.8=0
-prefix: /Users/vrooje/anaconda/envs/python279_volcrowe
-
+prefix: /Users/vrooje/anaconda/envs/py27
