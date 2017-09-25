@@ -2,8 +2,8 @@ import sys, os, glob
 import pandas as pd, numpy as np
 import ujson
 import datetime
-from get_workflow_info import get_workflow_info, translate_non_alphanumerics
-from aggregate_question_utils import breakout_anno, getfrac, aggregate_questions
+from get_workflow_info import get_workflow_info, translate_non_alphanumerics, get_short_slug
+from aggregate_question_utils import breakout_anno_q, getfrac, aggregate_questions
 
 
 # we've already used basic_project_stats.py to clean the file of duplicates and non-live classifications
@@ -111,7 +111,7 @@ for i_task, task in enumerate(workflow_info['tasknames']):
 
 
 # Also add tracking of np array indices
-# we need this for the breakout_anno() function
+# we need this for the breakout_anno_q() function
 # actually we don't anymore? but hey ho
 d_cols = {}
 for j in range(len(thecols)):
@@ -120,7 +120,7 @@ for j in range(len(thecols)):
 if breakout_class:
     print("Extracting question annotations...    %s" % datetime.datetime.now().strftime('%H:%M:%S'))
     # do it. Just... DO IT
-    x = classifications.apply(lambda row: breakout_anno(row, workflow_info), axis=1)
+    x = classifications.apply(lambda row: breakout_anno_q(row, workflow_info), axis=1)
     # the columns aren't always in the same order vs thecols list so just... force it?
     # there must be a better way here
     classifications[x.columns] = x

@@ -219,7 +219,11 @@ if not keep_allcols:
         print("Some columns missing from classifications infile, reading without specifying columns (uses more memory)... ")
         classifications = pd.read_csv(classfile_in)
 else:
-    classifications = pd.read_csv(classfile_in, low_memory=False)
+    try:
+        classifications = pd.read_csv(classfile_in, low_memory=False)
+    except:
+        classifications = pd.read_csv(classfile_in)
+
     cols_used = classifications.columns.tolist()
     cols_out  = classifications.columns.tolist()
     if not 'created_day' in cols_used:

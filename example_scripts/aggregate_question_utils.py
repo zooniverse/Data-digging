@@ -84,55 +84,71 @@ def breakout_anno_survey(row, workflow_info, fp, classcols, thecols):
 
     for task in annotations:
         taskname = task['task']
-        tasktype = workflow_info[taskname]['type']
+        try:
+            tasktype = workflow_info[taskname]['type']
 
-        # for a survey we expect a survey task and a "shortcut" for e.g.
-        # "Nothing Here", and they require different approaches
-        # either way we'll write 1 row per mark to the file
+            # for a survey we expect a survey task and a "shortcut" for e.g.
+            # "Nothing Here", and they require different approaches
+            # either way we'll write 1 row per mark to the file
 
-        if tasktype == "survey":
-            marks = task['value']
-            for mark in marks:
+            if tasktype == "survey":
+                marks = task['value']
+                for mark in marks:
+                    n_marks += 1
+
+                    # empty the dict of marks
+                    for col in thecols:
+                        theclass[col] = ''
+
+                    # fill in the dict
+                    theclass[taskname.lower()+'_choice'] = mark['choice']
+                    for ans in mark['answers'].keys():
+                        thelabel = workflow_info[taskname]['questions'][ans]['label_slug']
+                        #thelabel = get_short_slug(ans)
+                        theclass[taskname.lower()+'_'+thelabel] = mark['answers'][ans]
+                    # not currently doing anything with "filters"
+
+                    # print the mark
+                    write_class_row(fp, theclass, printcols)
+
+            elif tasktype == "shortcut":
+
                 n_marks += 1
 
                 # empty the dict of marks
                 for col in thecols:
                     theclass[col] = ''
 
-                # fill in the dict
-                theclass[taskname.lower()+'_choice'] = mark['choice']
-                for ans in mark['answers'].keys():
-                    thelabel = workflow_info[taskname]['questions'][ans]['label_slug']
-                    #thelabel = get_short_slug(ans)
-                    theclass[taskname.lower()+'_'+thelabel] = mark['answers'][ans]
-                # not currently doing anything with "filters"
+                # populate a default value for all the relevant columns
+                for ans in workflow_info[taskname]['answers']:
+                    theclass[ans['label_slug']] = False
 
-                # print the mark
+                # now populate the ones we have actual info for
+                for ans_orig in task['value']:
+                    # get the index in the workflow answer map so we can fetch
+                    # the correct column label
+                    i_a = workflow_info[taskname]['answer_map'][ans_orig]
+                    ans = workflow_info[taskname]['answers'][i_a]['label_slug']
+                    #ans = get_short_slug(ans_orig.lower())
+                    theclass[ans] = True
+
+                # now write the row to the file
                 write_class_row(fp, theclass, printcols)
 
-        elif tasktype == "shortcut":
+        except KeyError, e:
+            # now that I'm trapping and printing this here I've lost the index?
+            # how do I get that back and print it here so I can more easily find it?
+            # right now the answer is to take this out and let it crash horribly at the .apply() line in the main code
+            # and then the exception will also print the index it occurred at
+            print("============================================================================")
+            print("ERROR: A task in your classifications workflow doesn't match the tasks available from the workflow info!")
+            print(e)
+            print("  It happened for the task %s in this annotation:" % taskname)
+            print(annotations)
+            print("  I will try to gracefully continue, but you should really track this down")
+            print("============================================================================")
 
-            n_marks += 1
 
-            # empty the dict of marks
-            for col in thecols:
-                theclass[col] = ''
-
-            # populate a default value for all the relevant columns
-            for ans in workflow_info[taskname]['answers']:
-                theclass[ans['label_slug']] = False
-
-            # now populate the ones we have actual info for
-            for ans_orig in task['value']:
-                # get the index in the workflow answer map so we can fetch
-                # the correct column label
-                i_a = workflow_info[taskname]['answer_map'][ans_orig]
-                ans = workflow_info[taskname]['answers'][i_a]['label_slug']
-                #ans = get_short_slug(ans_orig.lower())
-                theclass[ans] = True
-
-            # now write the row to the file
-            write_class_row(fp, theclass, printcols)
 
     return n_marks
 
@@ -248,6 +264,8 @@ def aggregate_survey(grp, workflow_info):
     # groupby() --> df because indexing etc is slightly different
     subj = pd.DataFrame(grp)
 
+    #print(subj)
+
     # get the columns we'll be using based on the workflow info
     class_cols = get_class_cols(workflow_info)
 
@@ -330,18 +348,22 @@ def aggregate_survey(grp, workflow_info):
                                 list_all = ans_list
                             # this will flatten the list of lists
 
-                            adf = pd.DataFrame(list_all)
-                            adf.columns = ['ans']
-                            adf['count'] = np.ones_like(list_all, dtype=int)
-                            by_ans = adf.groupby('ans')
-                            ans_count = by_ans['count'].aggregate('sum')
-                            for a in ans_count.index:
-                                a_str = a
-                                if not isinstance(a, basestring):
-                                    a_str = str(int(a))
-                                a_slug = workflow_info[task]['questions'][q]['answers'][a_str]['label_slug']
-                                colname = "%s_%s_count" % (choice_slug, a_slug)
-                                theclass[colname] = ans_count[a]
+                            # it is possible to leave a multi-choice answer completely empty, in which case
+                            # just leave this. Empty sequences are false, so this if statement is simple
+                            if list_all:
+                                adf = pd.DataFrame(list_all)
+                                adf.columns = ['ans']
+                                adf['count'] = np.ones_like(list_all, dtype=int)
+                                by_ans = adf.groupby('ans')
+                                ans_count = by_ans['count'].aggregate('sum')
+                                for a in ans_count.index:
+                                    a_str = a
+                                    # force the choice to be a string if it isn't already
+                                    if not isinstance(a, basestring):
+                                        a_str = str(int(a))
+                                    a_slug = workflow_info[task]['questions'][q]['answers'][a_str]['label_slug']
+                                    colname = "%s_%s_count" % (choice_slug, a_slug)
+                                    theclass[colname] = ans_count[a]
 
 
         elif workflow_info[task]['type'] == "shortcut":

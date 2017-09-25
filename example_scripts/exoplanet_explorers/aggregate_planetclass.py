@@ -34,7 +34,7 @@ import numpy as np  # using 1.10.1
 import pandas as pd  # using 0.13.1
 #import datetime
 #import dateutil.parser
-import json
+import ujson
 import random
 import gc
 
@@ -207,14 +207,14 @@ def assign_weight(q, which_weight):
         else:
             return 1.0
 
-    '''
-    Weighting Schemes 2 and 3:
-     The passed seed is divided by the number of classifications.
+        '''
+        Weighting Schemes 2 and 3:
+         The passed seed is divided by the number of classifications.
 
-     In weighting scheme 2, the seed has one fixed increment for correct classifications and another for incorrect classifications. It's a switch with two possible values: right, or wrong.
+         In weighting scheme 2, the seed has one fixed increment for correct classifications and another for incorrect classifications. It's a switch with two possible values: right, or wrong.
 
-     Weighting scheme 3 is designed for projects where the gold-standards have variable intrinsic difficulty, so it sets the seed value for each gold-standard subject depending on how many people correctly classified it. Then it sums those individual seeds to the seed that's passed here and computes the weight in the same way as weighting scheme 2.
-    '''
+         Weighting scheme 3 is designed for projects where the gold-standards have variable intrinsic difficulty, so it sets the seed value for each gold-standard subject depending on how many people correctly classified it. Then it sums those individual seeds to the seed that's passed here and computes the weight in the same way as weighting scheme 2.
+        '''
 
     elif (which_weight == 2) | (which_weight == 3):
         if n_gs < 1: # don't divide by or take the log of 0
@@ -359,6 +359,18 @@ def get_alternate_sessioninfo(row):
             return thesession
 
 
+
+
+
+
+def get_live_project(meta_json):
+    try:
+        return meta_json['live_project']
+    except:
+        # apparently some subject metadata doesn't have this? dunno?
+        return False
+
+
 #################################################################################
 #################################################################################
 #################################################################################
@@ -397,44 +409,26 @@ classifications = pd.read_csv(classfile_in) # this step can take a few minutes f
 print("Making new columns and getting user labels...")
 
 # first, extract the started_at and finished_at from the annotations column
-classifications['meta_json'] = [json.loads(q) for q in classifications.metadata]
+classifications['meta_json'] = [ujson.loads(q) for q in classifications.metadata]
 
-classifications['started_at_str']  = [q['started_at']  for q in classifications.meta_json]
-classifications['finished_at_str'] = [q['finished_at'] for q in classifications.meta_json]
+# discard classifications made when the project was not in Live mode
+#
+# would that we could just do q['live_project'] but if that tag is missing for
+# any classifications (which it is in some cases) it crashes
+classifications['live_project']  = [get_live_project(q) for q in classifications.meta_json]
 
-# we need to set up a new user id column that's login name if the classification is while logged in,
-# session if not (right now "user_name" is login name or hashed IP and, well, read on...)
-# in this particular run of this particular project, session is a better tracer of uniqueness than IP
-# for anonymous users, because of a bug with some back-end stuff that someone else is fixing
-# but we also want to keep the user name if it exists, so let's use this function
-classifications['user_label'] = [get_alternate_sessioninfo(q) for q in classifications['user_name meta_json'.split()].iterrows()]
+# if this line gives you an error you've read in this boolean as a string
+# so need to convert "True" --> True and "False" --> False
+class_live = classifications[classifications.live_project].copy()
+n_class_thiswf = len(classifications)
+n_live = sum(classifications.live_project)
+n_notlive = n_class_thiswf - n_live
+print(" Removing %d non-live classifications..." % n_notlive)
 
-classifications['created_day'] = [q[:10] for q in classifications.created_at]
-
-# Get subject info into a format we can actually use
-classifications['subject_json'] = [json.loads(q) for q in classifications.subject_data]
-
-'''
-ALERT: I think they may have changed the format of the subject_dict such that later projects will have a different structure to this particular json.
-
-That will mean you'll have to adapt this part. Sorry - but hopefully it'll use the format that I note below I wish it had, or something similarly simple.
-
-'''
-
-
-
-# Get annotation info into a format we can actually use
-# these annotations are just a single yes or no question, yay
-classifications['annotation_json'] = [json.loads(q) for q in classifications.annotations]
-classifications['planet_classification'] = [q[0]['value'] for q in classifications.annotation_json]
-
-
-
-# create a weight parameter but set it to 1.0 for all classifications (unweighted) - may change later
-classifications['weight'] = [1.0 for q in classifications.workflow_version]
-# also create a count parameter, because at the time of writing this .aggregate('count') was sometimes off by 1
-classifications['count'] = [1 for q in classifications.workflow_version]
-
+# don't make a slice but also save memory
+classifications = pd.DataFrame(class_live)
+del class_live
+gc.collect()
 
 #######################################################
 # discard classifications not in the active workflow  #
@@ -448,6 +442,50 @@ in_workflow = this_workflow & the_active_workflow
 # note I haven't saved the full DF anywhere because of memory reasons, so if you're debugging:
 # classifications_all = classifications.copy()
 classifications = classifications[in_workflow]
+
+
+
+
+
+classifications['started_at_str']  = [q['started_at']  for q in classifications.meta_json]
+classifications['finished_at_str'] = [q['finished_at'] for q in classifications.meta_json]
+
+# we need to set up a new user id column that's login name if the classification is while logged in,
+# session if not (right now "user_name" is login name or hashed IP and, well, read on...)
+# in this particular run of this particular project, session is a better tracer of uniqueness than IP
+# for anonymous users, because of a bug with some back-end stuff that someone else is fixing
+# but we also want to keep the user name if it exists, so let's use this function
+classifications['user_label'] = [get_alternate_sessioninfo(q) for q in classifications['user_name meta_json'.split()].iterrows()]
+
+classifications['created_day'] = [q[:10] for q in classifications.created_at]
+
+print("Getting subject info...")
+
+# Get subject info into a format we can actually use
+classifications['subject_json'] = [ujson.loads(q) for q in classifications.subject_data]
+
+'''
+ALERT: I think they may have changed the format of the subject_dict such that later projects will have a different structure to this particular json.
+
+That will mean you'll have to adapt this part. Sorry - but hopefully it'll use the format that I note below I wish it had, or something similarly simple.
+
+'''
+
+print("Getting classification info...")
+
+# Get annotation info into a format we can actually use
+# these annotations are just a single yes or no question, yay
+classifications['annotation_json'] = [ujson.loads(q) for q in classifications.annotations]
+classifications['planet_classification'] = [q[0]['value'] for q in classifications.annotation_json]
+
+
+
+# create a weight parameter but set it to 1.0 for all classifications (unweighted) - may change later
+classifications['weight'] = [1.0 for q in classifications.workflow_version]
+# also create a count parameter, because at the time of writing this .aggregate('count') was sometimes off by 1
+classifications['count'] = [1 for q in classifications.workflow_version]
+
+
 
 print("Extracting filenames and subject types...")
 
@@ -581,6 +619,7 @@ if apply_weight > 0:
     user_weights = pd.DataFrame(user_exp)
     user_weights.columns = ['seed']
     user_weights['user_label'] = user_weights.index
+    user_weights['user_id'] = by_user['user_id'].head(1)
     user_weights['nclass_user'] = by_user['count'].aggregate('sum')
     user_weights['n_gs'] = by_user['is_gs'].aggregate('sum')
     user_weights['weight'] = [assign_weight(q, apply_weight) for q in user_weights.iterrows()]
@@ -701,7 +740,8 @@ class_agg.fillna(value=0.0, inplace=True)
 # let people look up the subject on Talk directly from the aggregated file
 class_agg['link'] = ['https://www.zooniverse.org/projects/ianc2/exoplanet-explorers/talk/subjects/'+str(q) for q in class_agg.index]
 # and provide the exofop link too
-class_agg['exofop'] = ['https://exofop.ipac.caltech.edu/k2/edit_target.php?id=%d' % int(q) for q in class_agg.candidate]
+# the int(float(q)) thing is in case it reads as a string, which breaks int(q)
+class_agg['exofop'] = ['https://exofop.ipac.caltech.edu/k2/edit_target.php?id=%d' % int(float(q)) for q in class_agg.candidate]
 # after we do the merges below the new indices might not be linked to the subject id, so save it explicitly
 class_agg['subject_ids'] = [str(q) for q in class_agg.index]
 

@@ -6,16 +6,13 @@ from ast import literal_eval
 from get_workflow_info import get_workflow_info, translate_non_alphanumerics, get_short_slug
 from aggregate_question_utils import breakout_anno_survey, getfrac, aggregate_survey, write_class_row
 
-classfile      = 'wildwatch-kenya-classifications_test.csv'
+classfile      = 'wildwatch-kenya-classifications_workflow_id2030_v321.78_nodups_inclnonlive.csv'
 workflow_file  = 'wildwatch-kenya-workflows.csv'
 workflow_cfile = 'wildwatch-kenya-workflow_contents.csv'
 
 workflow_id = 2030
-workflow_version = "301.76"
-
-annofile     = classfile.replace('.csv', '_annotations_1lineeach.csv')
-outfile      = classfile.replace('.csv', '_aggregated.csv')
-outfile_huge = classfile.replace('.csv', '_aggregated_kitchensink.csv')
+#workflow_version = "301.76"
+workflow_version = "321.78"
 
 
 try:
@@ -32,6 +29,10 @@ except:
     print("    If you don't specify an outfile_class or outfile_agg, the filenames\n    will be based on the input classfile name.")
     print("    If you vary the project from the suggested one above, you'll need to specify workflow files.\n")
     exit(0)
+
+annofile     = classfile.replace('.csv', '_annotations_1lineeach.csv')
+outfile      = classfile.replace('.csv', '_aggregated.csv')
+
 
 # check for other command-line arguments
 if len(sys.argv) > 2:
@@ -65,11 +66,28 @@ if classfile == annofile:
 if   outfile == annofile:
     outfile  = classfile + '_aggregated.csv'
 
+outfile_huge = outfile.replace('.csv', '_kitchensink.csv')
+
 workflow_df  = pd.read_csv(workflow_file)
 workflow_cdf = pd.read_csv(workflow_cfile)
 workflow_info = get_workflow_info(workflow_df, workflow_cdf, workflow_id, workflow_version)
 
-classifications = pd.read_csv(classfile, low_memory=False)
+# print out some summary stuff so it's clear things have been read properly
+print("Reading classifications from %s, aggregating workflow ID %d version %s, breaking out annotations into %s and saving aggregations into %s ..." % (classfile, workflow_id, workflow_version, annofile, outfile))
+
+print(" NOTE: this program assumes every classification in the input classifications\nfile is from the major workflow version you're interested in.\n")
+print("   If that is not the case, this program will crash.\n")
+print("   The current best way to extract a single workflow's classifications from")
+print("   the raw data export is to use basic_project_stats.py - check the comments\n   in this code for an example.")
+#print("   > python ../basic_project_stats.py wildwatch-kenya-classifications.csv workflow_id=2030 workflow_version=321.78 outfile_csv=wildwatch-kenya-classifications_workflow_id2030_v321.78_nodups_inclnonlive.csv --remove_duplicates --keep_nonlive --keep_allcols \n")
+#print("   substituting the file, workflow version and workflow id you need.")
+#print("   the --keep_allcols flag is required if you want to aggregate from the\n   resulting file. The other flags are optional.")
+
+try:
+    classifications = pd.read_csv(classfile, low_memory=False)
+except:
+    classifications = pd.read_csv(classfile)
+
 classifications['anno_json'] = [ujson.loads(q) for q in classifications.annotations]
 classifications.fillna(0.0, inplace=True)
 
@@ -111,6 +129,7 @@ print("%d annotations jailbroken from %d classifications, written to %s as indiv
 # save the number of marks per classification, in case it ends up being useful
 classifications['n_marks'] = n_marks
 
+print("Now reading in the jailbroken file and starting aggregation...")
 # now re-read the csv file with the annotations
 annotations = pd.read_csv(annofile)
 annotations['count'] = np.ones_like(annotations.created_at)
@@ -119,6 +138,8 @@ annotations['count'] = np.ones_like(annotations.created_at)
 by_subj = annotations.groupby('subject_ids')
 
 class_agg = by_subj.apply(aggregate_survey, workflow_info=workflow_info)
+
+print(" Aggregation done. Now checking which columns to print and printing... ")
 
 # check for empty columns
 all_cols = class_agg.columns.values
