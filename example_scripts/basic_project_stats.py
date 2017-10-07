@@ -470,6 +470,10 @@ n_reg_class = n_class_tot - n_unreg_class
 nclass_byuser = by_user.created_at.aggregate('count')
 nclass_byuser_ranked = nclass_byuser.copy()
 nclass_byuser_ranked.sort_values(inplace=True, ascending=False)
+# rename the columns properly so they'll print as useful csv headers
+nclass_byuser_ranked.name = 'user_name'
+nc = pd.DataFrame(nclass_byuser_ranked)
+nc.columns = ['n_class']
 
 # write this to a file, so you don't have to re-calculate it later
 nclass_byuser_outfile = classfile_in.replace(".csv", "_nclass_byuser_ranked.csv")
@@ -477,7 +481,7 @@ nclass_byuser_outfile = classfile_in.replace(".csv", "_nclass_byuser_ranked.csv"
 # renamed it to not end in .csv
 if nclass_byuser_outfile == classfile_in:
     nclass_byuser_outfile = "project_nclass_byuser_ranked.csv"
-nclass_byuser.to_csv(nclass_byuser_outfile)
+nc.to_csv(nclass_byuser_outfile)
 
 # very basic stats
 nclass_med    = np.median(nclass_byuser)
