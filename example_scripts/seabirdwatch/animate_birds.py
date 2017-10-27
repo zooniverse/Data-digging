@@ -8,6 +8,8 @@ from scipy.interpolate import interp1d
 # inputs
 brids_over_time_path = 'all_birds_over_time.csv'
 freq = 'day'
+tween_frames = 16
+interval = 124
 
 birds = pandas.read_csv(brids_over_time_path)
 birds.date = pandas.to_datetime(birds.date, format='%Y-%m-%d %H:%M:%S')
@@ -23,8 +25,6 @@ if freq == 'day':
 elif freq == 'week':
     skel_count = skel.groupby(skel.date.map(lambda x: (x.strftime('%Y-%m'), x.isocalendar()[1])))['kittiwakes', 'guillemots', 'chicks', 'others'].sum()
     max_count = 2100
-
-tween_frames = 16
 
 date = []
 kc = []
@@ -83,7 +83,6 @@ ax.set_ylim(0, max_count)
 ax.set_xlim(-0.2, 4)
 plt.xticks([0.4, 1.4, 2.4, 3.4], labels)
 values = zip(date, kc, gc, cc, oc)
-interval = 124
 ani = FuncAnimation(fig, update, values, interval=interval, init_func=init, save_count=len(date))
 
 writer = FFMpegWriter(fps=1000 // interval)
