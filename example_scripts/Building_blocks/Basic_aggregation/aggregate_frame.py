@@ -28,21 +28,24 @@ def process_aggregation(subj, cl_counter, other_fields, aggregated_bin_1, aggreg
     # the out_put can be any consistent function of those variables.  Typical processing could include
     # clustering drawing points, calculating vote fractions, applying a Bayesian pipeline, or simply
     # modifying the order or presentation format of the aggregate data.
-    out_put_1 = []
-    out_put_2 = 0
-    out_put_3 = []
-    # Once the aggregated data is processed and the out_put variables defined we can
-    # set up and write the aggregated and processed data to a file.  The field names can be chosen to
-    # make the data as useful as possible. They must match the fieldnames in the section below - both
-    # in order and spelling.
-    new_row = {'subject_ids': subj, 'classifications': cl_counter,
+    if cl_counter > some_limit: 
+        out_put_1 = []
+        out_put_2 = 0
+        out_put_3 = []
+        # Once the aggregated data is processed and the out_put variables defined we can
+        # set up and write the aggregated and processed data to a file.  The field names can be chosen to
+        # make the data as useful as possible. They must match the fieldnames in the section below - both
+        # in order and spelling.
+        new_row = {'subject_ids': subj, 'classifications': cl_counter,
                'Other field passed through from the classification file': other_fields,
                'agregated_bin_and_processed_field_1': out_put_1,
                'agregated_bin_and_processed_field_2': out_put_2,
                'agregated_bin_and_processed_field_3': out_put_3
                }
-    writer.writerow(new_row)
-    return None
+        writer.writerow(new_row)
+        return True
+    else:
+        return False
 
 
 # set up the output file names for the aggregated and processed data, and write the header.  The
@@ -72,6 +75,7 @@ with open(outlocation, 'w', newline='') as file:
         for row in r:
             # read a row and pullout the flattened data fields we need to aggregate, or pass through.
             new_subject = row['subject_ids']
+            new_user = row['user_name']
             new_other_field = row['other field from the classification file we want to pass through']
             field_1 = json.loads(row['field_1'])  # complex fields must be loaded as json objects
             field_2 = row['field_2']
@@ -87,6 +91,7 @@ with open(outlocation, 'w', newline='') as file:
                 # and the bins for the next aggregation.
                 i = 1
                 subject = new_subject
+                users = {new_user}
                 other_field = new_other_field  # an example of an other_field could be a image_number
                 # or image_size that is tied to the subject_ids.
                 bin_1 = field_1
@@ -95,8 +100,11 @@ with open(outlocation, 'w', newline='') as file:
 
             else:
                 # the selector has not yet changed so we continue the aggregation:
-                if i <= 15:  # optional - if we want to use a fixed number of classifications and a few
-                    #  subjects have more than the retirement limit.
+                # First test for multiple classifications by the same user on this subject, and 
+                # if we want to use a fixed number of classifications and a few subjects have 
+                # more than the retirement limit (here set at 15).
+                if users != users | {new_user} and i <= 15: 
+                    users |= {new_user}
                     bin_1.extend(field_1)  # typical aggregation for lists such as drawing points
                     bin_2 += field_2  # typical aggregation for a field which can be summed
                     for count in range(0, len(field_3)):  # summing the elements of a answer_vector
