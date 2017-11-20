@@ -10,36 +10,35 @@ locationselect = r'C:\py\Data_digging\aggregate_drawing_demo.csv'
 
 
 def process_aggregation(subj, image, clas, ep, min_point, h_palms, flowring, leafles):
-    c_p = []
-    clusters = []
-    noise = []
-    scanh = dbscan.DBSCAN(ep, min_point)
-    scanh.cluster(h_palms)
-    hc_p = json.dumps(scanh.points)
-    count_h = len(scanh.points)
-    hclusters = json.dumps(scanh.clusters)
-    hnoise = json.dumps(scanh.noise)
-    scanf = dbscan.DBSCAN(ep, min_point)
-    scanf.cluster(flowring)
-    fc_p = json.dumps(scanf.points)
-    count_f = len(scanf.points)
-    fclusters = json.dumps(scanf.clusters)
-    fnoise = json.dumps(scanf.noise)
-    scanl = dbscan.DBSCAN(ep, min_point)
-    scanl.cluster(leafles)
-    lc_p = json.dumps(scanl.points)
-    count_l = len(scanl.points)
-    lclusters = json.dumps(scanl.clusters)
-    lnoise = json.dumps(scanl.noise)
-    print(subject)
-    new_row = {'subject_ids': subject, 'image_number': image_number, 'classifications': i,
-               'Count_h_palms': count_h, 'H_palm_clusters': hc_p, 'Hclusters': hclusters,
-               'Hnoise': hnoise, 'Count_flowering': count_f, 'flowering_clusters': fc_p,
-               'fclusters': fclusters, 'fnoise': fnoise, 'Count_leafless': count_l,
-               'leafless_clusters': lc_p, 'lclusters': lclusters, 'lnoise': lnoise}
-    writer.writerow(new_row)
-    return None
-
+    if clas > 10: # test for a minimum of 10 valid clssifications   
+        scanh = dbscan.DBSCAN(ep, min_point)
+        scanh.cluster(h_palms)
+        hc_p = json.dumps(scanh.points)
+        count_h = len(scanh.points)
+        hclusters = json.dumps(scanh.clusters)
+        hnoise = json.dumps(scanh.noise)
+        scanf = dbscan.DBSCAN(ep, min_point)
+        scanf.cluster(flowring)
+        fc_p = json.dumps(scanf.points)
+        count_f = len(scanf.points)
+        fclusters = json.dumps(scanf.clusters)
+        fnoise = json.dumps(scanf.noise)
+        scanl = dbscan.DBSCAN(ep, min_point)
+        scanl.cluster(leafles)
+        lc_p = json.dumps(scanl.points)
+        count_l = len(scanl.points)
+        lclusters = json.dumps(scanl.clusters)
+        lnoise = json.dumps(scanl.noise)
+        print(subject)
+        new_row = {'subject_ids': subj, 'image_number': image, 'classifications': i,
+                   'Count_h_palms': count_h, 'H_palm_clusters': hc_p, 'Hclusters': hclusters,
+                   'Hnoise': hnoise, 'Count_flowering': count_f, 'flowering_clusters': fc_p,
+                   'fclusters': fclusters, 'fnoise': fnoise, 'Count_leafless': count_l,
+                   'leafless_clusters': lc_p, 'lclusters': lclusters, 'lnoise': lnoise}
+        writer.writerow(new_row)
+        return True
+    else: 
+        return False
 
 # set up the output file names for the aggregated and clustered data points
 with open(locationselect, 'w', newline='') as file:
@@ -72,6 +71,7 @@ with open(locationselect, 'w', newline='') as file:
             # read a row and pullout the flattened data fields we need to aggregate, or output.
             new_subject = row['subject_ids']
             new_image_number = row['image_number']
+            new_user = row['user_name']
             row_H_palm = json.loads(row['H palm'])
             row_flowering = json.loads(row['flowering'])
             row_leafless = json.loads(row['leafless'])
@@ -87,14 +87,17 @@ with open(locationselect, 'w', newline='') as file:
                 i = 1
                 subject = new_subject
                 image_number = new_image_number
+                users = {new_user}
                 eps = new_eps
                 h_palm = row_H_palm
                 flowering = row_flowering
                 leafless = row_leafless
 
             else:
-                # do the aggregation
-                if i <= 15:
+                 # do the aggregation - clean for excess classifications and multiple classifications by the same
+                # user on this subject
+                if users != users | {new_user} and i <= 15:
+                    users |= {new_user}
                     h_palm.extend(row_H_palm)
                     flowering.extend(row_flowering)
                     leafless.extend(row_leafless)
