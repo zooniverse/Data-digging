@@ -115,6 +115,45 @@ It is practical to expect the output of the aggregation stage is a simplified se
 Further analysis beyond this point will depend more on the science in the data than its form.
 
 
+## Plot overlays
+
+A useful way of displaying aggregated drawing data is to show the drawings and/or the consensus drawing as a overlay on the original subject image as in example 4982655.jpg in the repository.  This shows the original subject image with the centre points for all the circles that the volunteers drew on it during classification.  These points were then clustered using aggregate_drawing_demo.py, and the circles in the figure show the clusters that were made, along with a summary of the number of points in each cluster.
+
+This figure has been produced using Python and Matplotlib, a Python package for plotting.   Unfortunately to use this, one must successfully load a number of Python packages – this will not work with out-of–the-box Python.
+
+### Python Environment and Matplotlib Installation.
+
+It can be a pain, particularly for Windows users, to get the necessary packages installed.
+Matplotlib requires a number of packages; for the full list refer to the Installation instructions at:  https://matplotlib.org/users/installing.html
+
+I was on Windows 7 professional the first time I installed Matplotlib and I used the wheels from http://www.lfd.uci.edu/~gohlke/pythonlibs after many hours trying unsuccessfully to get a third party package loaders like Anaconda and Canopy and WinPython to work.
+
+Once Matplotlib and the dependencies were loaded and working I worked through a few of the example plots at https://matplotlib.org/gallery/index.html#pyplot-examples to make sure everything was working.   
+
+### Files in the repository:
+
+•	aggregate_drawing_demo.csv  - the aggregated, clustered data sample - See the Basic_aggregation repository for how this file is created.
+
+•	lookup_url.py - pulls subject and url from the subject download by subject set and workflow_id – Can easily be modified for other uses where specific fields need to be set up in a table.
+
+•	lookup_list_subject_url.csv – the lookup list data for subject set 7369 and workflow 3130.
+
+•	plot_data_interactive_aerobotany.py – the plot routine customized for Aerobotany.
+
+•	plot_data_interactive.py – the basic generic plot routine  - a starting point for other projects
+
+•	4982655.jpg – a sample jpeg format saved plot
+
+•	4982655.fig.pickle – a sample pickle file for the above plot.
+
+•	pickpickles.py – a script to find and select pickled files to display using matplotlib. This file could be used to find and load any pickle file with every few modifications to how the pickle file is activated in the last few lines.
+
+
+Note that lookup_url.py and pickpickles.py are actually quite general and with little modification could be used for many purposes beyond their specific use here.
+
+
+
+
 ## Panoptes Client
 
 ### Subject_uploader
