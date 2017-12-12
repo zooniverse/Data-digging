@@ -47,15 +47,154 @@ This will provide the framework the other blocks will be added onto. By itself i
 - Survey - Using B. Simmons' aggregate-survey.py (Complete)
 - Survey - Building block approach including flattening aggregation and filter/reconcile results (Complete)
 
-#### 4) Test blocks which will preform simple tests on the output from one or more of the blocks listed in 3):
-- \*Test points from point drawing tools lay within the image_size (ie no out-of-bounds points.)
--	\*Test circle centers are within a fixed percentage of the circle radius of an image edge (ie part of the circle lies within the image.)
--	\*Test that no two points of the same type are placed within a distance “eps” of each other on the same subject by the same classifier (ie test for double clicks)
--	\*As for above except for circle centres.
--	\*Test the radius of a circle is within a range specified (relative to the image_size)
--	Test the duration is consistent with a human classifier.
+## Basic Aggregation
+
+Normally several volunteers classify each subject.  There are clear benefits with the “wisdom of the crowd” both to reduce the possibility of “fat finger” accidental inputs or careless or even malicious inputs, but also to take advantage of the diversity of education, life experience, and many other factors that in a net total have been shown to often exceed the ability of a single individual to cut through uncertainty, preconceptions and biases.
+
+What this means for a project owner is of course, that a set of inputs for a specific subject need to be compared and the consensus or crowd wisdom determined for that set of data.
+
+The first step of this process, once the data has been flattened and simplified, is to collect it together subject by subject.  This process is known as aggregating the data.
+
+### Two Approaches:
+
+There are two main approaches.  One is to use advanced database techniques such as offered by pandas – a Python package which is commonly used for working with large data sets.  The other approach is more of an old fashioned do it yourself aggregation routine.  The pandas route needs the package added to your Python environment and is less intuitive.  It is also a bit of using a sledge hammer to place tacks.
+
+The approach I will advocate will use Python out of the box with no add-ons needed.   It may be a little more code intensive, but in the end I believe just as fast and efficient, not that we need to do this so frequently that speed and computer resources are a concern.
+
+To aggregate the data we need to determine by which field we want to group the flattened classification records.  This is normally the field subject_ids, but it may be in some cases such as a survey task a combination of fields such as subject-choice.  To describe the process we will call whatever field we want to group by the “selector” and assume we have flattened the classification file so the selector is in a field (column) by itself, and all records have a value there of a consistent sortable data type – usually a string. 
+
+### Sort the flattened classification records: 
+
+The first order of business is to sort the flattened classification file using the selector as the sort key.  All the heavy lifting is actually done in this stage – once the file is sorted we will only need to work with one record at a time.  If the file is huge (ie several gigabytes) resources to sort it in one go may be a problem.  But we can slice the raw classification download by the selector field in to chunks of whatever size we want when we flatten the data – and since we are slicing by the selector, each section will have no cross contamination with any other section and they can be sorted and aggregated independently.  
+
+So the first script in this section is a basic sort routine written as a function.  This is a very general routine with many potential uses beyond the use in question.  As written it cleans up and deletes the unsorted file but this can be optional – just drop out the last few lines where the existence of the old file is tested and if it exists deleted.  The function accepts an input file, sorts on any field specified by a integer (first field is ‘0’), and writes the sorted data to a specified output file.  The actual sort order is not critical – What we need is all the classifications with the same selector grouped together in a block in the data file – we start accumulating at the first record of the block and continue to the last record with that selector.
+
+### The aggregation routine: aggregate_frame.py
+
+Once the file is sorted by the aggregator, the aggregation routine itself is fairly simple:
+1)	initialize empty bins for each field where we want to aggregate the data.
+2)	initialize the first value of the aggregator to a empty value.
+3)	Set up to loop over the records of the sorted field in order and read a record.
+4)	Test if the record just read matches the current value of the selector:
+If it does NOT we know we have come to a section of the file with a new selector.  In this case, if this is not just the first record we will output the aggregated and accumulated data for the fields we have collected.
+In any case we will reset the selector to the new value, and reset the bins so they only contain this record’s values of their respective fields.
+
+Otherwise if the record’s value of the selector’s field matches the current selector then we want to add the data from each field into its respective bin and move on to the next record. (Actually do the aggregation)
+
+5)	Once all records are read we need to catch the last set of accumulated data which was being collected when we ran out of records.
+
+### Further processing within the aggregation loop:
+
+Note once we get to the step where the selector has changed and our bins are full we can do much more than just output them.  We can process, filter, resolve, cluster or otherwise work with the aggregated data in any way we want before we move on to the next group.  We just need to remember to do the last set of bins as well.
+
+There are various ways to aggregate and process the fields
+
+–	Strings that represent numbers can be converted to numbers and added.  Standard stats can be applied to numbers – Average, median etc.
+
+–	Strings can be gathered as elements in a list which is appended for each record.  These can then be passed to other routines for reconciliation.
+
+–	More complex fields need to be read with a json.loads() and may themselves be lists or lists of lists. These can be aggregated into larger Python objects.
+
+–	Drawing objects in general are aggregated by collecting together the points that define each of the drawings being aggregated.  A set of circles for example gives a set of points for the various locations of the centres.  The centre points can be clustered – which automatically groups circles placed nearly in the same position by various volunteers.  Clustering sorts all the circles placed on the image into different target areas. (At least it does if they are separated by more than the discrepancies between volunteers marking the same centre point)  Once clustered, the radii of each group of circles could be averaged or we could use the median value. Points can be accumulated then clustered in the same manner.  The more complex drawing figures are still defined by points so similar things can be done to resolve the consensus figure.
+
+–	Transcriptions and survey tasks have their own unique issues – full aggregation techniques for these are available and discussed elsewhere.
+
+–	Sometimes we may only want to count things – eg if the field holds “yes” or “no”, we may simply want to count instances of “yes” so that the aggregated bin is the count of positive responses to a question.
+
+–	We may then want to calculate vote fractions by dividing such counts by the number of records that matched the selector.
+
+–	If we were clever when we flattened the data file we may have created objects that are easy to aggregate – such as answer-vectors with 1’s and 0’s for each possible response indicating that response selected or not.  Adding the corresponding elements of these together and dividing by the total number of records that matched the selector results in an aggregated answer vector which give each response option directly as a vote fraction.
+
+–	We may be able to process the aggregated data for a subject using Bayesian probability theory – In this case each value in some group of aggregated field values represents a yes or no “opinion” concerning the likelihood of some event. (example the existence of an object in the image by the placement of a point)  Beginning with some estimate of the probability of the event, each opinion can be applied in turn to modify this estimate if we know something about the probability that opinion is correct, specifically the probability the observer is correct when they predict such events to occur (ie accurately mark real objects) and the probability they are correct when they predict the event will not occur (accurately do not mark non-existent objects).  The sequential application of these opinions to improve the current estimate probability of the event, each corrected for their skill or reliability, is referred to as a Bayesian pipeline.  
 
 
+Just about any manipulation of the data that is dependent only on the aggregated results for that selector can be done at the stage the accumulated bins are ready to output. 
+
+It is practical to expect the output of the aggregation stage is a simplified set of data by subject with most or all the minor discrepancies in the individual classifications reconciled or resolved to reveal the consensus result.   The consensus result is often expressed as a plurality vote fractions for each question response, clustered drawing objects, or “best fit” transcriptions.
+
+Further analysis beyond this point will depend more on the science in the data than its form.
+
+
+## Panoptes Client
+
+### Subject_uploader
+
+There are two versions of this script.  subject_uploader.py is written in Python 3.6, while subject_uploader_2,py is written in Python 2.7  Both have been tested with small subject sets only, but with a stable internet connection should work fine for larger sets.  In any case error handling should carry the process through any errors and the final part of the script produces a file with the filenames of the subjects that were successfully uploaded for verification.
+
+Both scripts work the same way.  
+First the script connects with the Panoptes Client using your zooiniverse User_name and Password. These have to be set as environmental variables for your computer using your OS.  Alternately these can be hardcoded in the script if you keep it private enough.  The project slug "pmason/fossiltrainer" must be replaced to match that for your project, and you must have colaborator or owner status on the project.
+
+Second, a minimal UI asks for the path to the image files to be uploaded.  The script will find all image files in that directory and attempt to upload them. It is important that the directory only contain image files you want uploaded.  Non-image files are ignored so it is quite practical to place a copy of the script in the directory and run everything from that directory as the current working directory.
+
+Next the UI asks for the display_name for the subject set you want to create or use.  The script will search for the subject set and prepare to add to it if it exists or create it if new.
+
+There is then a confirmation step where the number of files to upload and where they are to be added can be verified before proceeding.
+
+Once that is done the script proceeds to determine what files if any are in the subject set already.  It then attempts to upload any files that are naot already uploaded to the subject set.  This can take some time.  The file names are displayed as each file upload is completed and the subject has been linked to the subject set.
+
+The final step queries the subject set directly and produces a file containing the filenames of all the subjects in the subject set at the end of the uploading process.  This can be used, along with the subject set counts, to verify all the subjects were uploaded correctly.
+
+### Generate Classification and Subject exports
+
+The script generate_export.py logs into the Panoptes client using User_name and Password previously set up as Environmental Variables in your Operating system.  Alternately these can be hardcoded if the code is kept secure to protect your password. It is also necessary to hardcode the desired project slug in line 7 to use the script as a stand-alone rather than a module.
+
+The script first tests to see if 24 hours have elapsed since the last classification export was requested, and warns and terminates if not. If the last export request is more than 24 hours previous it attempts to generate a new one.  The script then waits 30 seconds for Panoptes to begin to create the export and then tests to see if that has happened. If not it warns the export request is not being produced.
+
+These same steps are then repeated for the Subject export.
+
+### Download exports and slice
+
+The script download_export_and_slice.py logs into the Panoptes client using User_name and Password previously set up as Environmental Variables in your Operating system.  Alternately these can be hardcoded if the code is kept secure to protect your password. It is also necessary to hardcode the desired project slug in line 7 to use the script as a stand-alone rather than a module.
+The destination path and filenames for both the classification file and the subject export need to be hardcoded, as well as the locations for the sliced output to use the script as a stand_alone, or explicitly passed to the functions if called as modules. 
+
+
+Unlike the code suggested in the Panoptes Client documentation, this script can handle large export files (easily > 1Gb) since it does not read the file into memory all in one go but streams the data to a file in chunks. All subsequent operations from the file after they are opened for slicing are handled by Python to avoid overloading the memory available.
+
+The download and slicing can take several minutes for larger files (about 3 minutes per Gb for my hardware, internet connection and when zooniverse is not too busy - all three things will affect the time.)
+
+The script determines the age of the classification export file based on the current time and the last update to the export.  This age is calculated for EST - other time zones will need to change the hardcoded offset to zulu time.  If the export file has not completed generating, the download will fail with the message 'Classifications download did not complete' and the function returns False.
+
+If the generated export file exists it is then downloaded to the file specified as the destination.  This operation is handled by the Python package requests using request.iter_content and has been quite robust. You may be able to optimize it slightly for your situation by changing the chunk size though 4096 works well for me.  Once the file is complete a message to that effect is printed, and the function returns True. If the download fails for any reason the error is handled, a warning message is printed and the function returns False
+
+The script then does the same for the subject export.  If other exports are required, minor modifications of this function can handle the other exports as well.
+
+The next function slice_exports uses an only slightly modified flatten_class_frame.py to set up logical tests for records to be included in the slice. See the documentation for that script for details.  The specific limits and conditions need to be hardcoded based on your project workflows, subject sets and subject id ranges.  (Note classification export files have a field subject_ids with an s while the subject export has subject_id with no s)
+
+Using the appropriate conditions and limits any part of either of the exports can be extracted into much smaller files for further processing.  Since it is likely that the reduced classification file will be processed multiple times for various purposes it makes sense to do the slice once per download rather than leave it to the flattening step, though further slicing can be done there as well.
+
+The script supplies a short report of records read and processed (sliced) into the shortened files.  If the functions complete with no errors they return True.
+
+###  Copy Subject Set
+
+This script is written in Python3.62 and requires the panoptes_client to be installed.
+
+To use the script your zooniverse user-name and password must be set in your Operating System as Environment Variables for the keys User_name and Password. Alternately you can hardcode your username and password in the code as shown below but then you must secure the code to protect your password..
+
+````Panoptes.connect(username='user_name', password='password')````
+
+If you attempt to connect to a project for which you are not authorized as a owner or collaborator the script will respond 
+
+````subject set not found or not accessible````
+
+Unfortunately the error handling is very crude and does not tell you exactly what went wrong.
+
+The script first asks you for the source project id and the subject_set name, and attempts to access this subject set.  If the set is not found or is not accessible to you have the option to try again or exit. It is best to copy and paste the subject set name directly from the project builder since it is both case sensitive and spaces and punctuation count.
+
+The script then queries the subject set and creates a list of subjects in it that need to be copied to the destination.  This can take some time - many minutes for large sets.
+
+The script then asks for the project id and subject set name for the destination subject set.  Again an attempt to access a project you do not have access to will produce the output
+
+````Project not found or accessible````
+
+with the opportunity to try again or exit.
+
+The script then locates the destination subject set or proceeds to create it and link it to the specified project.  The script then proceeds to link the subjects in the list from above one at a time verifying they linked to the new subject set for each subject. Subjects in the destination subject set previously linked or those that did not link due to communication errors or other causes will report 
+
+````previously linked or did not link correctly````
+
+The total number of subjects linked is reported.  If some subjects were already linked to the destination subject set this number will not be the same as the length of the list of source subjects.
+
+The script then queries the new subject set directly and produces a list of the subjects linked to it.  That list should be the same length as the source subject set. The list is saved to a file  'copied_subjects.csv'.  Again this takes a few minutes.  
 
 
 
