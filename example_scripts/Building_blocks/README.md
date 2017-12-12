@@ -156,12 +156,16 @@ Note that lookup_url.py and pickpickles.py are actually quite general and with l
 
 ## Panoptes Client
 
+The Python Panoptes Client allows one to write scripts that can do all what can be done via the project builder and much more. Below are listed a number of scripts written to address speific requirements. I will add more as the need for them arises.
+
 ### Subject_uploader
+
+A simple UI allows one to upload image files from a local directory with a minimum of hassle – Uplike the project builder subject uploader, it can be interrupted while processing and be resumed without duplicating or missing files in the directory, and it produces a report of exactly what files were uploaded so you are sure everything is correct.
 
 There are two versions of this script.  subject_uploader.py is written in Python 3.6, while subject_uploader_2,py is written in Python 2.7  Both have been tested with small subject sets only, but with a stable internet connection should work fine for larger sets.  In any case error handling should carry the process through any errors and the final part of the script produces a file with the filenames of the subjects that were successfully uploaded for verification.
 
 Both scripts work the same way.  
-First the script connects with the Panoptes Client using your zooiniverse User_name and Password. These have to be set as environmental variables for your computer using your OS.  Alternately these can be hardcoded in the script if you keep it private enough.  The project slug "pmason/fossiltrainer" must be replaced to match that for your project, and you must have colaborator or owner status on the project.
+First the script connects with the Panoptes Client using your zooiniverse User_name and Password. These have to be set as environmental variables for your computer using your OS.  Alternately these can be hardcoded in the script if you keep it private enough.  The project slug "pmason/fossiltrainer" must be replaced to match that for your project, and you must have collaborator or owner status on the project.
 
 Second, a minimal UI asks for the path to the image files to be uploaded.  The script will find all image files in that directory and attempt to upload them. It is important that the directory only contain image files you want uploaded.  Non-image files are ignored so it is quite practical to place a copy of the script in the directory and run everything from that directory as the current working directory.
 
