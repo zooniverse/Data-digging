@@ -239,6 +239,16 @@ The total number of subjects linked is reported.  If some subjects were already 
 
 The script then queries the new subject set directly and produces a list of the subjects linked to it.  That list should be the same length as the source subject set. The list is saved to a file  'copied_subjects.csv'.  Again this takes a few minutes.  
 
+### Download a Subject Set to a Local Directory
+
+This script is written in Python 3.6.2. It requires a number of Python packages: Panoptes client, Pillow, and requests. 
+
+It is used to copy single-image subjects from a selected subject set to a local directory on your machine using the filename metadata as the file name, or if that is not set, the subject_id plus an appropriate file extension.
+
+It uses a simple user interface to input the user's credentials for the zooniverse log-in, the subject set id to download and the path and directory to place the downloaded file into. It reports how many files are found to download and how many are completed at the end.
+
+It can be stopped and restarted and will not duplicate files already successfully downloaded.
+
 
 
 
