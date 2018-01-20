@@ -7,24 +7,13 @@ from panoptes_client import SubjectSet, Panoptes
 from PIL import Image
 import requests
 
-while True:
-    User_name = input('Enter Zoonioverse User_name' + '\n')
-    Password = input('Entre Zooniverse Password - Warning it will show on the screen' + '\n')
-    try:
-        Panoptes.connect(username=User_name, password=Password)
-        break
-    except panoptes_client.panoptes.PanoptesAPIException:
-        print('Credentials not accepted')
-        retry = input('Enter "n" to cancel, any other key to retry' + '\n')
-        if retry.lower() == 'n':
-            quit()
+Panoptes.connect(username=os.environ['User_name'], password=os.environ['Password'])
 
 while True:
-    set_id = input('Entry subject set id to download:' + '\n')
-    try:
-        # check if the subject set exits
+    set_id = input('Enter subject set id to download:' + '\n')
+    try:        
         print('Please wait while I check this subject set exists and how many subjects are in it')
-        subject_set = SubjectSet.where(subject_set_id=set_id).next()
+        subject_set = SubjectSet.find(set_id)
         count_subjects = 0
         subject_list = []
         for subject in subject_set.subjects:
@@ -58,31 +47,31 @@ while True:
             if retry.lower() == 'n':
                 quit()
               
-i =  0
+saved_images =  0
 for item in subject_list:
     try:
         file_name = location + os.sep + item.metadata['Filename']
     except KeyError:
-        file_name = location + os.sep + item.id + '.jpg'
-      
-    print(file_name)
+        file_name = location + os.sep + item.id + '.' + (list(item.locations[0].keys())[0]).partition('/')[2].lower()
+    
     if os.path.isfile(file_name):
         print(file_name, ' already exists, not downloaded')
-        i += 1
+        saved_images += 1
         continue
 
     # acquire the image
     try:
-        im = Image.open(requests.get(item.locations[0]['image/jpeg'], stream=True).raw)
+        acquired_image = Image.open(requests.get(list(item.locations[0].values())[0], stream=True).raw)
     except IOError:
         print('Subject download for ', item.id, ' failed')
         continue
    
     try:
-        im.save(file_name, exif=im.info.get('exif'))
-        i += 1
+        acquired_image.save(file_name, exif=acquired_image.info.get('exif'))
+        saved_images += 1
+        print(file_name)
     except TypeError:
-        im.save(file_name)
-        i += 1
-        print('Subject ', item.id, ' no exif data recovered')
-print(i, ' files of ', len(subject_list), ' are in the directory at the end of downloading')
+        acquired_image.save(file_name)
+        saved_images += 1
+        print(file_name, ' no exif data recovered')
+print(saved_images, ' files of ', len(subject_list), ' are in the directory at the end of downloading')
