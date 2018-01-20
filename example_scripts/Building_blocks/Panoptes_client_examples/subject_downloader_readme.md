@@ -10,8 +10,9 @@ These all can be installed flawlessly via the Pycharm Edu package installer as w
 
 To use This script, the easiest way is to create a new directory where you want to download the subject images to, then copy this script to that directory, and run it from there.
 
-The first section requests your zooniverse credentials.  When entering your password, be advised that it shows on the interpreter screen.
-The script then asks for the subject set id number.  If you do not have rights to that subject set, it reports it as not found.
+The script assumes your zooniverse credentials are set up as environmental variables.  For Windows 10 these are set as follows: Control Panel > System and security > System > Advanced system setting (on left) > Environmental variables (lower right) > For User variables (top pane) - select New > For Variable - enter "User_name", for Value - enter your zooniverse user name, hit Ok > repeat for Variable - enter "Password", Value - enter your zooniverse password > hit Ok twice> restart the computer to enable the new environmenta variables you just defined. Note the variables and values are case sensitive! 
+
+The script then asks for the subject set id number.  If the set id has been deleted, it reports it as not found.  Note: it appears subject sets other than those for your project can be queried, possibly even downloaded so be careful you have selected the correct one!
 
 The script then queries the subject set adding the all the members to a list. The script reports the number of subjects in the subject set ready to download. This can take a few minutes for a large subject set!!!
 
