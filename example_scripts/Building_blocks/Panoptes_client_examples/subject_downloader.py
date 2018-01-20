@@ -7,8 +7,6 @@ from panoptes_client import SubjectSet, Panoptes
 from PIL import Image
 import requests
 
-Panoptes.connect(username=os.environ['User_name'], password=os.environ['Password'])
-
 while True:
     set_id = input('Enter subject set id to download:' + '\n')
     try:        
