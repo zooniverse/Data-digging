@@ -3,13 +3,18 @@ Tools for analysis of classification and subject data from github.com/zooniverse
 
 Scripts in the top-level directory should work for any Panoptes project, and are sometimes used by more project-specific scripts in sub-directories.
 
-If you have a raw classifications export file and aren't sure where to start, try `basic_project_stats.py`. It will give you the basic information about your project's classifications but it can *also* clean your export of duplicate classifications, extract classifications from only specific workflows and/or from only Live-mode project dates, and save the cleaned classification file to a new file. It will also give you a file listing classification counts for each user. More information below.
+## Where do I begin?
+
+If you have a raw classifications export file and aren't sure where to start:
+ - try the Jupyter notebooks `00 - First Look at Classifications` and `01 - Project Stats and Cleaning Classification Files`. They will step you through making use of the script `basic_classification_stats.py`.
+
+ - Or, jump straight into using `basic_classification_stats.py`. You can run this from the command line or import it into your existing scripts. It will give you the basic information about your project's classifications but it can *also* clean your export of duplicate classifications, extract classifications from only specific workflows and/or from only Live-mode project dates, and save the cleaned classification file to a new file. It will also give you a file listing classification counts for each user. More information below.
 
 Scripts in each project directory may contain code that needs to be modified to work on a different project, or that would need to be generalized to make them applicable to any project.
 
 Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in the [panoptes_analysis](https://github.com/vrooje/panoptes_analysis) repo. They both can run on the classification export from Galaxy Zoo Bar Lengths, which is included in this repo. But they should run fine on any classification export, so long as you're operating in the Python environment defined by *basic_project_stats.yml* (for both scripts).
 
-More details on the general scripts in this directory:
+### More details on the general scripts in this directory
 
  - `active_users_timeseries.py` - makes a classification and user count timeseries, binned hourly, for logged-in and non-logged-in users. Outputs to files:
     - A csv file containing the timeseries
@@ -23,7 +28,7 @@ More details on the general scripts in this directory:
     - aggregates question votes into vote fractions. Can be weighted or unweighted aggregation depending on how you populate the 'count' column of the classifications dataframe you pass it.
     - example usage: see `galaxy_zoo_bar_lengths` folder.
 
- - `basic_project_stats.py` - computes basic statistics from a raw classification export file. Run without any inputs to see usage details. Outputs to screen:
+ - `basic_classification_processing.py` - computes basic statistics from a raw classification export file. Run without any inputs to see usage details. In default mode, outputs to screen:
     - Total number of classifications
     - Total number of classifiers (registered and unregistered)
     - Stats on classifications per subject
@@ -34,6 +39,8 @@ More details on the general scripts in this directory:
 
     Run this program without any inputs to see its various options re: specifying workflow_ids, removing duplicate classifications, etc. There are enough possible variations (with the additional option to output a "cleaned" classification file) that this program is useful for filtering a full classification export into sub-files with, e.g., only the live, non-duplicate classifications for the workflow ID and version of your choice.
 
+ - `basic_project_stats.py` - this is a command-line only version of `basic_classification_processing.py` and is no longer updated.
+ 
  - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
     - meant to be imported: `from get_workflow_info import get_workflow_info`
     - takes dataframes containing the raw contents of workflow and workflow-contents exports requested from the project builder
