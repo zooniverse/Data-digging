@@ -1,5 +1,5 @@
 import sys, os, ujson
-import pandas as pd
+import pandas as pd, numpy as np
 
 
 '''
@@ -62,7 +62,7 @@ something that better describes the task.
 
 '''
 
-def get_workflow_info(workflow_df, workflow_cont_df, workflow_id, workflow_version):
+def get_workflow_info(workflow_df, workflow_cdf, workflow_id, workflow_version):
     # initialize the output
     workflow_info = {}
 
@@ -79,19 +79,20 @@ def get_workflow_info(workflow_df, workflow_cont_df, workflow_id, workflow_versi
     except:
         # you'll be here if only the major workflow version was supplied.
         # In that case just use the most recent minor version for this major version
-        wf_minor_all = np.max(workflow_cont_df['version'][workflow_cont_df['workflow_id'] == workflow_id].unique())
+        wf_minor = np.max(workflow_cdf['version'][workflow_cdf['workflow_id'] == workflow_id].unique())
+
 
     # parse the tasks column as a json so we can work with it (it just loads as a string)
     workflow_df['tasks_json']        = [ujson.loads(q) for q in workflow_df['tasks']]
-    workflow_cont_df['strings_json'] = [ujson.loads(q) for q in workflow_cont_df['strings']]
+    workflow_cdf['strings_json'] = [ujson.loads(q) for q in workflow_cdf['strings']]
 
     # identify the row of the workflow dataframe we want to extract
     is_theworkflow  =      (workflow_df['workflow_id'] == workflow_id) &      (workflow_df['version'] == wf_major)
-    is_ctheworkflow = (workflow_cont_df['workflow_id'] == workflow_id) & (workflow_cont_df['version'] == wf_minor)
+    is_ctheworkflow = (workflow_cdf['workflow_id'] == workflow_id) & (workflow_cdf['version'] == wf_minor)
 
     # extract it
     theworkflow  =      workflow_df[is_theworkflow]
-    ctheworkflow = workflow_cont_df[is_ctheworkflow]
+    ctheworkflow = workflow_cdf[is_ctheworkflow]
 
     # pandas is a little weird about accessing stuff sometimes
     # we should only have 1 row in theworkflow but the row index will be retained
@@ -114,6 +115,8 @@ def get_workflow_info(workflow_df, workflow_cont_df, workflow_id, workflow_versi
     # now join workflow structure to workflow label content for each task
 
     for task in tasknames:
+
+        #print(task)
 
         taskslug = get_short_slug(task.lower())
 
@@ -159,8 +162,40 @@ def get_workflow_info(workflow_df, workflow_cont_df, workflow_id, workflow_versi
             # now, do the same for each of the drawing tools
             for i, ans in enumerate(workflow_info[task]['tools']):
                 a_label = strings[workflow_info[task]['tools'][i]['label']]
+                a_slug  = get_short_slug(a_label.lower())
                 workflow_info[task]['tools'][i]['label'] = a_label
-                workflow_info[task]['tools'][i]['label_slug'] = "%s_%s_a%d_%s" % (taskslug, q_slug, i, get_short_slug(a_label.lower()))
+                workflow_info[task]['tools'][i]['label_slug'] = "%s_%s_a%d_%s" % (taskslug, q_slug, i, a_slug)
+
+
+                n_deets = len(ans['details'])
+                #workflow_info[get_short_slug(a_label.lower())+'_ndetails'] = n_deets
+                # if there are further details, record those too
+                # "details" = sub-tasks
+                # pretty sure the details can be either free text or questions
+                if n_deets > 0:
+                    # writing this is making me hate subtasks
+                    # there can be an arbitrary number of subtask questions
+                    # and also the subtask questions can be single, multiple or text
+                    for i_d in range(n_deets):
+                        d_label = strings[ans['details'][i_d]['question']]
+                        d_slug = get_short_slug(d_label.lower())
+                        deets_type = ans['details'][i_d]['type']
+                        #workflow_info[deets_str+'_type'] = deets_type
+
+                        # if it's a text sub-task there's just 1 text box and we're good
+
+                        # if it's a question sub-task we need to add an answer count
+                        if (deets_type == 'single') | (deets_type == 'multiple'):
+
+                            workflow_info[task]['tools'][i]['details'][i_d]['question'] = d_label
+                            workflow_info[task]['tools'][i]['details'][i_d]['question_slug'] = "%s_%s_a%d_d%d_%s" % (taskslug, q_slug, i, i_d, d_slug)
+
+                            for i_da, d_ans in enumerate(ans['details'][i_d]['answers']):
+                                #workflow_info[deets_slug+'_nanswers'] = len(ans['details'][i_d]['answers'])
+                                da_label = strings[d_ans['label']]
+                                da_slug  = get_short_slug(da_label.lower())
+                                workflow_info[task]['tools'][i]['details'][i_d]['answers'][i_da]['label'] = da_label
+                                workflow_info[task]['tools'][i]['details'][i_d]['answers'][i_da]['label_slug'] = "%s_a%d_d%d_%s_da%d_%s" % (taskslug, i, i_d, d_slug, i_da, da_slug)
 
 
         ################
@@ -208,6 +243,9 @@ def get_workflow_info(workflow_df, workflow_cont_df, workflow_id, workflow_versi
                 workflow_info[task]['answers'][i_a]['label'] = a_label
                 workflow_info[task]['answer_map'][a_label] = i_a
                 workflow_info[task]['answers'][i_a]['label_slug'] = "%s_a%d_%s" % (taskslug, i_a, get_short_slug(a_label.lower()))
+
+        # if task == "T0":
+        #     break
 
 
     return workflow_info
