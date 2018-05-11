@@ -126,7 +126,7 @@ def read_classfile(classfile_in, keep_allcols=False, verbose=True):
     return classifications
 
 
-def isolate_workflow(classifications, workflow_id, workflow_version, verbose):
+def isolate_workflow(classifications, workflow_id, workflow_version, workflow_ver_min=-1, workflow_ver_max=-1, verbose=True):
     # only keep the stuff that matches these workflow properties
     if (workflow_id > 0):
 
@@ -138,15 +138,62 @@ def isolate_workflow(classifications, workflow_id, workflow_version, verbose):
         # the workflow id wasn't specified, so just make an array of true
         in_workflow = np.array([True for q in classifications.workflow_id])
 
-    if (workflow_version > 0):
-
-        classifications['version_int'] = [int(q) for q in classifications.workflow_version]
-
-        if verbose:
-            print("Considering only major workflow version %d" % int(workflow_version))
+    if (workflow_version > 0) | (workflow_ver_min > 0) | (workflow_ver_max > 0):
 
         # we only care about the major workflow version, not the minor version
-        in_version = classifications.version_int == int(workflow_version)
+        classifications['version_int'] = [int(q) for q in classifications.workflow_version]
+
+        '''
+        There are 4 possible behaviors here:
+         1 - select only classifications in a specific workflow version
+         2 - select only classifications >= a minimum workflow version
+         3 - select only classifications <= a maximum workflow version
+         4 - select classifications with workflow version min <= version <= max
+
+         I can see use cases for all but #3 but it's not much more work to include
+         #3, so.
+        '''
+
+        if (workflow_ver_min <= 0) & (workflow_ver_max <= 0):
+            # case 1 - select only classifications in a specific workflow version
+            in_version = classifications.version_int == int(workflow_version)
+
+            if verbose:
+                print("Considering only major workflow version %d" % int(workflow_version))
+
+        else:
+            ver_min = False
+            ver_max = False
+
+            if (workflow_ver_min > 0):
+                is_over_wfv_min  = classifications.version_int >= int(workflow_ver_min)
+                ver_min = True
+
+            if (workflow_ver_max > 0):
+                is_under_wfv_max = classifications.version_int <= int(workflow_ver_max)
+                ver_max = True
+
+            # case 4 - select classifications between min and max workflow version
+            if ver_min & ver_max:
+                in_version = is_over_wfv_min & is_under_wfv_max
+                if verbose:
+                    print("Considering only major workflow versions %d <= version <= %d" % (int(workflow_ver_min), int(workflow_ver_max)))
+
+            # case 2 - select classifications above a minimum workflow version
+            elif ver_min:
+                in_version = is_over_wfv_min
+                if verbose:
+                    print("Considering only major workflow versions >= %d" % int(workflow_ver_min))
+
+            # case 3 - select classifications below a maximum workflow version
+            elif ver_max:
+                in_version = is_under_wfv_max
+                if verbose:
+                    print("Considering only major workflow versions <= %d" % int(workflow_ver_max))
+                    print("NOTE: this is unusual, so be SURE this is what you need!")
+
+
+
     else:
         in_version = np.array([True for q in classifications.workflow_version])
 
@@ -266,7 +313,7 @@ def remove_duplicate_classifications(classfile_in, classifications, verbose=True
 # Begin the main stuff
 
 
-def basic_stats_processing(classfile_in, workflow_id=-1, workflow_version=-1, time_elapsed=False, output_csv=False, outfile_csv="", remove_duplicates=False, keep_nonlive=True, keep_allcols=False, verbose=True):
+def basic_stats_processing(classfile_in, workflow_id=-1, workflow_version=-1, workflow_ver_min=-1, workflow_ver_max=-1, time_elapsed=False, output_csv=False, outfile_csv="", remove_duplicates=False, keep_nonlive=True, keep_allcols=False, verbose=True):
 
     # in case someone forgets to set the flag but specifies a filename
     if len(outfile_csv) > 1:
@@ -290,12 +337,12 @@ def basic_stats_processing(classfile_in, workflow_id=-1, workflow_version=-1, ti
     n_class_raw = len(classifications)
 
     # now restrict classifications to a particular workflow id/version if requested
-    if (workflow_id > 0) | (workflow_version > 0):
+    if (workflow_id > 0) | (workflow_version > 0) | (workflow_ver_min > 0) | (workflow_ver_max > 0):
 
-        in_workflow, in_version = isolate_workflow(classifications, workflow_id, workflow_version, verbose)
+        in_workflow, in_version = isolate_workflow(classifications, workflow_id, workflow_version, workflow_ver_min=workflow_ver_min, workflow_ver_max=workflow_ver_max, verbose=verbose)
 
         if (sum(in_workflow & in_version) == 0):
-            print("ERROR: your combination of workflow_id and workflow_version does not exist!\nIgnoring workflow id/version request and computing stats for ALL classifications instead.")
+            print("ERROR: your combination of workflow_id and workflow_version(s) does not exist!\nIgnoring workflow id/version request and computing stats for ALL classifications instead.")
             #classifications = classifications_all
         else:
             # select the subset of classifications
@@ -595,6 +642,10 @@ def basic_stats_help():
     print("    workflow_version=M")
     print("       specify the program should only consider classifications from workflow version M")
     print("       (note the program will only consider the major version, i.e. the integer part)")
+    print("    workflow_ver_min=Mmin, workflow_ver_max=Mmax")
+    print("       specify the program should consider classifications from workflow version >= Mmin")
+    print("       or <= Mmax, or Mmin <= workflow version <= Mmax, if both are specified")
+    print("       Note specifying either a min or max supersedes specifying a workflow_version.")
     print("    outfile_csv=filename.csv")
     print("       if you want the program to save a sub-file with only classification info from the workflow specified, give the filename here")
     print("    --time_elapsed")
@@ -632,6 +683,10 @@ if __name__ == '__main__':
         print("    workflow_version=M")
         print("       specify the program should only consider classifications from workflow version M")
         print("       (note the program will only consider the major version, i.e. the integer part)")
+        print("    workflow_ver_min=Mmin, workflow_ver_max=Mmax")
+        print("       specify the program should consider classifications from workflow version >= Mmin")
+        print("       or <= Mmax, or Mmin <= workflow version <= Mmax, if both are specified")
+        print("       (note specifying either a min or max supersedes specifying a workflow_version)")
         print("    outfile_csv=filename.csv")
         print("       if you want the program to save a sub-file with only classification info from the workflow specified, give the filename here")
         print("    --time_elapsed")
@@ -651,8 +706,10 @@ if __name__ == '__main__':
 
 
     # default value is not to care about workflow ID or version
-    workflow_id      = -1
-    workflow_version = -1
+    workflow_id       = -1
+    workflow_version  = -1
+    workflow_ver_min = -1
+    workflow_ver_max = -1
     # by default we won't worry about computing how much time effort the volunteers cumulatively spent
     time_elapsed = False
     # by default we won't write the subset of classifications we used to a new csv file
@@ -677,6 +734,12 @@ if __name__ == '__main__':
 
             if arg[0]   == "workflow_id":
                 workflow_id = int(arg[1])
+            elif arg[0] == "workflow_version":
+                workflow_version = float(arg[1])
+            elif (arg[0] == "workflow_ver_min") | (arg[0] == "version_min"):
+                workflow_ver_min = int(arg[1])
+            elif (arg[0] == "workflow_ver_max") | (arg[0] == "version_max"):
+                workflow_ver_max = int(arg[1])
             elif arg[0] == "workflow_version":
                 workflow_version = float(arg[1])
             elif (arg[0] == "outfile_csv") | (arg[0] == "outfile"):
@@ -724,7 +787,7 @@ if __name__ == '__main__':
 
 
 
-    basic_stats_processing(classfile_in, workflow_id=workflow_id, workflow_version=workflow_version, time_elapsed=time_elapsed, output_csv=output_csv, remove_duplicates=remove_duplicates, keep_nonlive=keep_nonlive, keep_allcols=keep_allcols, verbose=verbose)
+    basic_stats_processing(classfile_in, workflow_id=workflow_id, workflow_version=workflow_version, workflow_ver_min=workflow_ver_min, workflow_ver_max=workflow_ver_max, time_elapsed=time_elapsed, output_csv=output_csv, remove_duplicates=remove_duplicates, keep_nonlive=keep_nonlive, keep_allcols=keep_allcols, verbose=verbose)
 
 
 
