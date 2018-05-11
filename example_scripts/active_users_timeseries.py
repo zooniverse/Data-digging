@@ -284,6 +284,7 @@ if not plot_only:
     # testing purposes
     #the_time = pd.to_datetime("2017-04-04 00:00:00", format='%Y-%m-%d %H:%M:%S')
     dt = np.timedelta64(1, dt_unit)
+    nclass_cumul = 0
 
     while the_time < time_end:
         # pick just the classifications in this time period
@@ -355,7 +356,7 @@ if not plot_only:
             else:
                 time_spent_str = ""
 
-            fout.write("%s,%s,0,0,0,0,0,0,0,0,0%s\n" % (the_time.strftime('%Y-%m-%d %H:%M:%S'), the_time_hi.strftime('%Y-%m-%d %H:%M:%S'), time_spent_str))
+            fout.write("%s,%s,%d,0,0,0,0,0,0,0,0%s\n" % (the_time.strftime('%Y-%m-%d %H:%M:%S'), the_time_hi.strftime('%Y-%m-%d %H:%M:%S'), nclass_cumul, time_spent_str))
 
 
         the_time += dt
@@ -393,11 +394,14 @@ the_ts['df_users_reg_lo'] = the_ts.df_users_reg.copy()
 the_ts.loc[(the_ts.f_users_reg + the_ts.df_users_reg_hi > 1.), 'df_users_reg_hi'] = 1. - the_ts.f_users_reg
 the_ts.loc[(the_ts.f_users_reg - the_ts.df_users_reg_lo < 0.), 'df_users_reg_lo'] = the_ts.f_users_reg
 
-the_ts['t_per_class'] = np.zeros_like(the_ts.class_t_spent_sec)
-the_ts['t_per_user']  = np.zeros_like(the_ts.class_t_spent_sec)
-nonzero_class = the_ts['n_class_t_spent'] > 0
-the_ts.loc[nonzero_class, 't_per_class'] = the_ts['class_t_spent_sec'][nonzero_class] / (the_ts['n_class_t_spent'].astype(float))
-the_ts.loc[nonzero_class, 't_per_user']  = the_ts['class_t_spent_sec'][nonzero_class] / (the_ts['n_users_t_spent'].astype(float))
+nonzero_class = the_ts['n_class_total'] > 0
+
+
+if time_spent:
+    the_ts['t_per_class'] = np.zeros_like(the_ts.class_t_spent_sec)
+    the_ts['t_per_user']  = np.zeros_like(the_ts.class_t_spent_sec)
+    the_ts.loc[nonzero_class, 't_per_class'] = the_ts['class_t_spent_sec'][nonzero_class] / (the_ts['n_class_t_spent'].astype(float))
+    the_ts.loc[nonzero_class, 't_per_user']  = the_ts['class_t_spent_sec'][nonzero_class] / (the_ts['n_users_t_spent'].astype(float))
 
 
 # figure out what the output plot filenames will be
