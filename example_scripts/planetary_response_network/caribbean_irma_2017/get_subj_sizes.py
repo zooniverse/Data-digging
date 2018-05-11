@@ -33,7 +33,10 @@ except:
 try:
     active_subject_sets = literal_eval(sys.argv[2])
 except:
-    pass
+    try:
+        active_subject_sets = [int(sys.argv[2])]
+    except:
+        pass
 
 
 ssid_str = '%d' % active_subject_sets[0]

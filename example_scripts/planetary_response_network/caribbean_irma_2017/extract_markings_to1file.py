@@ -4,6 +4,7 @@ import pandas as pd
 import ujson
 from scipy.interpolate import interp1d
 import scipy.ndimage
+from ast import literal_eval
 
 
 
@@ -35,6 +36,10 @@ ssid = 14930
 # Planet - Dominica
 ssid = 14988
 
+
+active_subject_sets = [ssid]
+
+
 #infile    = "%s-classifications.csv" % project_name
 
 #infile = 'damage-floods-blockages-shelters-landsat-classifications.csv'
@@ -51,6 +56,8 @@ workflow_version = -1
 workflow_id = 4958
 freetext = ''
 outdir = "outfiles"
+subject_file_set_by_user = False
+
 # check for other command-line arguments
 if len(sys.argv) > 1:
     # if there are additional arguments, loop through them
@@ -62,11 +69,26 @@ if len(sys.argv) > 1:
         elif (arg[0] == "workflow_version") | (arg[0] == "wfv"):
             workflow_version = arg[1]
         elif (arg[0] == "subject_set_id") | (arg[0] == "ssid"):
-            ssid = int(arg[1])
+            # might be passed as an int, might be passed as a list
+            try:
+                ssid = int(arg[1])
+                ssid_str = arg[1]
+                active_subject_sets = [ssid]
+            except:
+                active_subject_sets = literal_eval(arg[1])
+                ssid = active_subject_sets[0]
+                ssid_str = '%d' % ssid
+                for i in range(len(active_subject_sets)):
+                    if i > 0:
+                        ssid_str = '%s_%d' % (ssid_str, active_subject_sets[i])
+
         elif (arg[0] == "name") | (arg[0] == "stub") | (arg[0] == "freetext"):
             freetext = arg[1]
         elif (arg[0] == "outdir"):
             outdir = arg[1]
+        elif (arg[0] == "subj") | (arg[0] == "subjects") | (arg[0] == "subjectfile") | (arg[0] == "subject_file"):
+            subjectfile = arg[1]
+            subject_file_set_by_user = True
 
 
 workflow_file = "%s-workflows.csv"       % project_name
@@ -74,7 +96,9 @@ workflow_contents_file = "%s-workflow_contents.csv" % project_name
 # if this subject file doesn't already exist, run get_subject_sizes.py
 # note it has to download images to determine imsize (in pixels) so generate it some
 # other way if you already have that info
-subjectfile   = "%s-subjects_enhancedinfo_ssids_%d.csv" % (project_name, ssid)
+if not subject_file_set_by_user:
+    subjectfile   = "%s-subjects_enhancedinfo_ssids_%s.csv" % (project_name, ssid_str)
+
 
 # these files will/may be written to
 outfile_nodir      = "%s-marks-points_wfid_%d.csv" % (project_name, workflow_id)
@@ -153,6 +177,17 @@ def get_wf_basics(workflow_id):
         shortcut_tasks = ['T1', 'T3']
         struc_subtask = False
 
+
+    # Clone of the Planet-only workflow but only the damage marking question
+    elif workflow_id == 5071:
+        workflow_version = '2.3'  # could also be 2.2 if Dominica or later
+        marking_tasks = ['T0']
+        question_tasks = []
+        shortcut_tasks = ['T1', 'T3']
+        struc_subtask = False
+
+
+
     return workflow_version, marking_tasks, question_tasks, shortcut_tasks, struc_subtask
 
 
@@ -184,14 +219,27 @@ def get_coords_mark(markinfo):
 
 
 
-def get_projection(ssid):
-    # for now let's just return the same projection for everything
-    # this is for Sentinel 2
-    return Proj(init='epsg:32620')
+def get_projection(projection_in):
+#     # for now let's just return the same projection for everything
+#     # this is for Sentinel 2
+#     return Proj(init='epsg:32620')
+    # if you're supplying anything with a colon like 'epsg:32619', you need init=.
+    # if you are supplying something more like '+proj=utm +zone=19 +datum=WGS84 +units=m +no_defs ', which comes from e.g. gdal, using init= will crash things
+    # even though those two strings represent the same projection
+    # what fun this is
+    try:
+        inProj  = Proj(projection_in)
+    except:
+        try:
+            inProj  = Proj(init=projection_in)
+        except:
+            # just assume a default
+            inProj = Proj(init='epsg:32620')
 
+    return inProj
 
 # takes a single metadata row
-def get_corner_latlong(meta_json, ssid):
+def get_corner_latlong(meta_json, projection_in):
     # in some cases we've included the corner lat and long in the metadata, in other cases not quite, but we can get that info
     # recall that longitude is the x direction, latitude is the y direction
     # BDS-created subjects have min and max lat and long so we can read it directly
@@ -212,7 +260,11 @@ def get_corner_latlong(meta_json, ssid):
         #print((x_m_min, y_m_min, x_m_max, y_m_max))
 
         #f_x_lon, f_y_lat = get_interp_grid(subjects, ssid)
-        inProj = get_projection(ssid)
+        try:
+            inProj = get_projection(meta_json['projection_orig'])
+        except:
+            inProj = get_projection(ssid)
+
         outProj = Proj(init='epsg:4326')
 
         lon_min, lat_min = transform(inProj,outProj,x_m_min,y_m_min)
@@ -478,7 +530,7 @@ print("Matching to subjects in %s ..." % subjectfile)
 
 subjects_all = pd.read_csv(subjectfile)
 #active_subject_sets = [14709, 14710, 14746, 14750, 14759, 14764, 14770, 14773, 14806, 14813, 14929]
-active_subject_sets = [ssid]
+#active_subject_sets = [ssid]
 is_active = np.array([q in active_subject_sets for q in subjects_all.subject_set_id])
 #in_workflow = subjects_all.workflow_id == workflow_id
 #subjects = (subjects_all[is_active & in_workflow]).copy()
@@ -491,7 +543,7 @@ if len(subjects) > 0:
     # subjects['loc_json']  = [ujson.loads(q) for q in subjects.locations]
     # subjects['loc_im0']   = [q['0'] for q in subjects.loc_json]
     #
-    # coords = [get_corner_latlong(q, 14710) for q in subjects['meta_json']]
+    # coords = [get_corner_latlong(q) for q in subjects['meta_json']]
     # #lon_min, lon_max, lat_min, lat_max
     # subjects['lon_min'] = [q[0] for q in coords]
     # subjects['lon_max'] = [q[1] for q in coords]
@@ -500,6 +552,7 @@ if len(subjects) > 0:
 
     ################################## matching marks
     # read in the mark file we've just written
+    file_mark_compact = ''
     if i_mark > 0:
         themarks = pd.read_csv(outfile)
 
@@ -540,13 +593,15 @@ if len(subjects) > 0:
         if not struc_subtask:
             mark_cols_clean_out.remove('how_damaged')
 
-        marks_subj_clean[mark_cols_clean_out].to_csv(outfile_wsubj.replace(".csv", "-compact.csv"))
+        file_mark_compact = outfile_wsubj.replace(".csv", "-compact.csv")
+        marks_subj_clean[mark_cols_clean_out].to_csv(file_mark_compact)
 
-        print("%d marks matched to %d subjects; result output in %s." % (i_mark, len(subjects), outfile_wsubj))
+        print("%d marks out of %d matched to %d subjects; result output in %s." % (len(marks_subj_clean), i_mark, len(subjects), outfile_wsubj))
 
 
     subj_cols_compact = 'lon_min lon_max lat_min lat_max imsize_x_pix imsize_y_pix'.split()
 
+    blankfile_wsubj = ''
     ################################## matching blanks to subject info
     if i_empty > 0:
         theblanks = pd.read_csv(blankfile)
@@ -558,7 +613,7 @@ if len(subjects) > 0:
         print(" ... saved %s" % blankfile_wsubj)
 
 
-
+    questionfile_wsubj = ''
     ################################## matching questions to subject info
     if i_question > 0:
         thequestions = pd.read_csv(questionfile)
@@ -570,7 +625,7 @@ if len(subjects) > 0:
         print(" ... saved %s" % questionfile_wsubj)
 
 
-
+    shortcutfile_wsubj = ''
     ################################## matching shortcuts to subject info
     if i_shortcut > 0:
         theshortcuts = pd.read_csv(shortcutfile)
@@ -580,6 +635,9 @@ if len(subjects) > 0:
         shortcutfile_wsubj = "%s/%s%s" % (outdir, freetext, shortcutfile_nodir.replace(".csv", "-wsubjinfo.csv"))
         shortcuts_subj[all_cols_out][np.invert(np.isnan(shortcuts_subj.imsize_y_pix))].to_csv(shortcutfile_wsubj)
         print(" ... saved %s" % shortcutfile_wsubj)
+
+    print("Your next move might be something like:")
+    print("tar -czvf %sclassifications_marks_matched.tar.gz %s %s %s %s %s" % (freetext, subjectfile, file_mark_compact, blankfile_wsubj, questionfile_wsubj, shortcutfile_wsubj))
 
 
 else:
