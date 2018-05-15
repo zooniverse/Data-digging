@@ -166,6 +166,8 @@ if not usecol_cl:
         print("OOPS: no author column found! Nothing to print, exiting.")
         exit(0)
 
+author_col_backup = author_col
+
 # credited name is not always supplied so we need a backup column
 if author_col in cols_to_try_preferred:
     author_col_backup = ''
