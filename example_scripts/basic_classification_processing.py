@@ -713,7 +713,8 @@ if __name__ == '__main__':
     # by default we won't worry about computing how much time effort the volunteers cumulatively spent
     time_elapsed = False
     # by default we won't write the subset of classifications we used to a new csv file
-    output_csv = False
+    output_csv  = False
+    outfile_csv = False
     # by default we'll ignore the possibility of duplicate classifications
     # note duplicates are relatively rare, usually <2% of all classifications
     # the Zooniverse has squashed several bugs related to this, but some still
@@ -725,6 +726,7 @@ if __name__ == '__main__':
     keep_allcols = False
     # by default, print all the progress statements and stats
     verbose = True
+
 
     # check for other command-line arguments
     if len(sys.argv) > 2:
@@ -787,7 +789,7 @@ if __name__ == '__main__':
 
 
 
-    basic_stats_processing(classfile_in, workflow_id=workflow_id, workflow_version=workflow_version, workflow_ver_min=workflow_ver_min, workflow_ver_max=workflow_ver_max, time_elapsed=time_elapsed, output_csv=output_csv, remove_duplicates=remove_duplicates, keep_nonlive=keep_nonlive, keep_allcols=keep_allcols, verbose=verbose)
+    basic_stats_processing(classfile_in, workflow_id=workflow_id, workflow_version=workflow_version, workflow_ver_min=workflow_ver_min, workflow_ver_max=workflow_ver_max, time_elapsed=time_elapsed, output_csv=output_csv, outfile_csv=outfile_csv, remove_duplicates=remove_duplicates, keep_nonlive=keep_nonlive, keep_allcols=keep_allcols, verbose=verbose)
 
 
 
