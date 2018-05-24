@@ -53,7 +53,7 @@ classifications['answer'] = [q[0]['value'] for q in classifications.anno_json]
 
 
 ids_of_interest = [21594033, 21528871, 21561104, 21528903]
-names_of_interest=['AAT',   '2p3m', '18ch', '18as']
+names_of_interest=['AAT',   '2p3m',   '18ch',   '18as']
 
 users_allobjs = {}
 
