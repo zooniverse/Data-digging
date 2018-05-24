@@ -112,6 +112,8 @@ def get_credited_name_all(vols, whichtype='user_id'):
     i_print = int(len(vols)/10)
     if i_print > 1000:
         i_print = 1000
+    elif i_print < 10:
+        i_print = 10
 
     if whichtype == 'user_id':
         # user ID lookup has a different format for the query
