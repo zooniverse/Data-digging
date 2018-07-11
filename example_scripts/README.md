@@ -6,9 +6,9 @@ Scripts in the top-level directory should work for any Panoptes project, and are
 ## Where do I begin?
 
 If you have a raw classifications export file and aren't sure where to start:
- - try the Jupyter notebooks `00 - First Look at Classifications` and `01 - Project Stats and Cleaning Classification Files`. They will step you through making use of the script `basic_classification_stats.py`.
+ - try the Jupyter notebooks `00 - First Look at Classifications` and `01 - Project Stats and Cleaning Classification Files`. They will step you through making use of the script `basic_classification_processing.py`.
 
- - Or, jump straight into using `basic_classification_stats.py`. You can run this from the command line or import it into your existing scripts. It will give you the basic information about your project's classifications but it can *also* clean your export of duplicate classifications, extract classifications from only specific workflows and/or from only Live-mode project dates, and save the cleaned classification file to a new file. It will also give you a file listing classification counts for each user. More information below.
+ - Or, jump straight into using [basic_classification_processing.py](basic_classification_processing.py). You can run this from the command line or import it into your existing scripts. It will give you the basic information about your project's classifications but it can *also* clean your export of duplicate classifications, extract classifications from only specific workflows and/or from only Live-mode project dates, and save the cleaned classification file to a new file. It will also give you a file listing classification counts for each user. More information below.
 
 Scripts in each project directory may contain code that needs to be modified to work on a different project, or that would need to be generalized to make them applicable to any project.
 
