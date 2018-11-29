@@ -105,6 +105,9 @@ def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
         i_print = 10
 
 
+    # print("whichtype = %s" % whichtype)
+
+
     # we can look up the credited_name either via user_id or user_name
     # currently classification exports call it "user_name" and the Panoptes DB
     #    calls it "login"
@@ -133,8 +136,12 @@ def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
 
                 disp_names.loc[(vols==the_id)] = name_use
                 #credited_names[the_id] = user.credited_name
-            if i % i_print == 0:
-                print("Credited name: lookup %d of %d (%s --> %s)" % (i, len(vols), the_id, name_use))
+                if i % i_print == 0:
+                    print("Credited name: lookup %d of %d (%s --> %s)" % (i, len(vols), the_id, name_use))
+            else:
+                if i % i_print == 0:
+                    print("Credited name: lookup %d of %d (%s --> ___MISSING_OR_ERROR___%d___)" % (i, len(vols), the_id, len(missing_ids)))
+               
 
 
         if (len(missing_ids) > 0) & (verbosity > 0):
@@ -149,7 +156,10 @@ def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
         for i, the_login in enumerate(vols):
             name_use = the_login
             for user in User.where(login=the_login):
-                name_use = user.display_name
+                try:
+                    name_use = user.credited_name
+                except:
+                    name_use = user.display_name
             #credited_names[the_login] = cname
             disp_names.loc[(vols==the_login)] = name_use
             if i % i_print == 0:
@@ -162,6 +172,45 @@ def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
 
 
 
+
+def make_userfile_from_classfile(classfile):
+        cols_keep = ["classification_id", "user_name", "user_id", "user_ip"]  # , "workflow_id", "workflow_version"]
+        try:
+            classifications = pd.read_csv(classfile, usecols=cols_keep)
+        except:
+            # if this breaks something's gone very wrong (these cols should always be present) so you want it to crash
+            classifications = pd.read_csv(classfile, usecols=["classification_id", "user_name"])
+
+        # we don't need unregistered users
+        is_unreg_class = [q.startswith("not-logged-in") for q in classifications.user_name]
+        class_reg = classifications[np.invert(is_unreg_class)].copy()
+        by_user = class_reg.groupby("user_name")
+
+        # we could just do classifications.user_name.unique() but this doesn't take that long
+        # and adds lots of info, so why not?
+        nclass_byuser = by_user.classification_id.aggregate("count")
+
+        nclass_byuser.name = 'user_name'
+        nc_unranked = pd.DataFrame(nclass_byuser)
+        nc_unranked.columns = ['n_class']
+
+        if "user_id" in classifications.columns:
+            user_ids = by_user['user_id'].first()
+            nc_unranked['user_id'] = user_ids
+
+        nclass_byuser_ranked = nc_unranked.copy()
+        nclass_byuser_ranked.sort_values('n_class', inplace=True, ascending=False)
+
+        nclass_file = classfile.replace(".csv", "_userlist_with_nclass.csv")
+        # just in case the infile doesn't have .csv? shouldn't happen but just in case
+        if nclass_file == classfile:
+            nclass_file = classfile + "_userlist_with_nclass.csv"
+
+        nclass_byuser_ranked.to_csv(nclass_file)
+        
+        print("Extracted %d users from %d registered classifications and saved to %s..." % (len(nclass_byuser_ranked), len(class_reg), nclass_file))
+
+        return nclass_file
 
 
 
@@ -188,6 +237,12 @@ def make_author_list(infile, outfile, clean_emails=False, preformat=False, useco
 
 
     # figure out the user column
+
+    # if a column has been manually specified, use it, always
+    if author_col is not None:
+        usecol_cl = True
+
+
 
     if usecol_cl:
         if not (author_col in authorlist_all.columns):
@@ -237,13 +292,20 @@ def make_author_list(infile, outfile, clean_emails=False, preformat=False, useco
         authorlist['name_merged'] = [get_best_name(q, author_col, author_col_backup) for q in authorlist.iterrows()]
         author_col = 'name_merged'
     # now, try to look up the credited name if we don't already have it
+    # if it's specified what we need to use, use that. Otherwise try to use user_id, or if not, use what you have
+    elif usecol_cl & (author_col != 'user_id'):
+        print("Using column %s to determine author list..." % author_col)
+        authorlist['name_merged'] = get_credited_name_all(authorlist[author_col], whichtype=author_col)
+        author_col = 'name_merged'   
     elif ('user_id' in authorlist.columns) & (not skip_lookup):
+        print("Using column user_id to determine author list...")
         authorlist['name_merged'] = get_credited_name_all(authorlist['user_id'])
         author_col = 'name_merged'
     else:
         if not skip_lookup:
             for thename in login_cols:
                 if thename in authorlist.columns:
+                    print("Using column %s to determine author list..." % thename)
                     authorlist['name_merged'] = get_credited_name_all(authorlist[thename], whichtype=thename)
                     author_col = 'name_merged'
                     break
@@ -434,7 +496,7 @@ if __name__ == '__main__':
                 preformat = True
             elif (arg[0] == "--no_lookup") | (arg[0] == "--nolookup"):
                 skip_lookup = True
-            elif (arg[0] == "col") | (arg[0] == "usecol"):
+            elif (arg[0] == "col") | (arg[0] == "usecol") | (arg[0] == "author_col"):
                 usecol_cl = True
                 author_col = arg[1]
             elif (arg[0] == "len") | (arg[0] == "length") | (arg[0] == "line") | (arg[0] == "linelength"):
@@ -449,42 +511,8 @@ if __name__ == '__main__':
     # if we don't yet have a users file, we need to make one first.
     # it's better to use basic_classification_processing.py to make one, but this quick-and-dirty will work.
     if is_classfile:
-        cols_keep = ["classification_id", "user_name", "user_id", "user_ip"]  # , "workflow_id", "workflow_version"]
-        try:
-            classifications = pd.read_csv(infile, usecols=cols_keep)
-        except:
-            # if this breaks something's gone very wrong (these cols should always be present) so you want it to crash
-            classifications = pd.read_csv(infile, usecols=["classification_id", "user_name"])
-
-        # we don't need unregistered users
-        is_unreg_class = [q.startswith("not-logged-in") for q in classifications.user_name]
-        class_reg = classifications[np.invert(is_unreg_class)]
-        by_user = class_reg.groupby("user_name")
-
-        # we could just do classifications.user_name.unique() but this doesn't take that long
-        # and adds lots of info, so why not?
-        nclass_byuser = by_user.classification_id.aggregate("count")
-
-        nclass_byuser.name = 'user_name'
-        nc_unranked = pd.DataFrame(nclass_byuser)
-        nc_unranked.columns = ['n_class']
-
-        if "user_id" in classifications.columns:
-            user_ids = by_user['user_id'].first()
-            nc_unranked['user_id'] = user_ids
-
-        nclass_byuser_ranked = nc_unranked.copy()
-        nclass_byuser_ranked.sort_values('n_class', inplace=True, ascending=False)
-
-        nclass_file = infile.replace(".csv", "_userlist_with_nclass.csv")
-        # just in case the infile doesn't have .csv? shouldn't happen but just in case
-        if nclass_file == infile:
-            nclass_file = infile + "_userlist_with_nclass.csv"
-
-        nclass_byuser_ranked.to_csv(nclass_file)
-        infile = nclass_file
-        print("Extracted %d users from %d registered classifications and saved to %s..." % (len(nclass_byuser_ranked), len(class_reg), nclass_file))
-
+        infile_class = infile
+        infile = make_userfile_from_classfile(infile)
 
 
     make_author_list(infile, outfile, clean_emails=clean_emails, preformat=preformat, usecol_cl=usecol_cl, author_col=author_col, skip_lookup=skip_lookup, out_logged_in=out_logged_in, outcsv=outcsv, max_line_length_char=max_line_length_char)
