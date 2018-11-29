@@ -493,12 +493,25 @@ def basic_stats_processing(classfile_in, workflow_id=-1, workflow_version=-1, wo
     # But it's still interesting to see who your most prolific classifiers are, and
     # e.g. whether they're also your most prolific Talk users
     nclass_byuser = by_user.created_at.aggregate('count')
-    nclass_byuser_ranked = nclass_byuser.copy()
-    nclass_byuser_ranked.sort_values(inplace=True, ascending=False)
+
+    # add user_ids so that we can make an Authors page more easily later
+    user_ids = by_user['user_id'].first()
+    nclass_byuser.name = 'user_name'
+    nc_unranked = pd.DataFrame(nclass_byuser)
+    nc_unranked.columns = ['n_class']
+    nc_unranked['user_id'] = user_ids
+
+    nclass_byuser_ranked = nc_unranked.copy()
+    nclass_byuser_ranked.sort_values('n_class', inplace=True, ascending=False)
+    # nclass_byuser_ranked = nclass_byuser.copy()
     # rename the columns properly so they'll print as useful csv headers
-    nclass_byuser_ranked.name = 'user_name'
-    nc = pd.DataFrame(nclass_byuser_ranked)
-    nc.columns = ['n_class']
+    # nclass_byuser_ranked.name = 'user_name'
+    # nc = pd.DataFrame(nclass_byuser_ranked)
+    # nc.columns = ['n_class']
+
+    is_logged_in = np.invert([q.startswith('not-logged-in') for q in nclass_byuser_ranked.index.values])
+    nc_logged_in = nclass_byuser_ranked[is_logged_in].copy()
+    nc_logged_in['user_id'] = pd.to_numeric(nc_logged_in.user_id, errors='coerce', downcast='integer')
 
     # write this to a file, so you don't have to re-calculate it later
     nclass_byuser_outfile = classfile_in.replace(".csv", "_nclass_byuser_ranked.csv")
@@ -506,7 +519,11 @@ def basic_stats_processing(classfile_in, workflow_id=-1, workflow_version=-1, wo
     # renamed it to not end in .csv
     if nclass_byuser_outfile == classfile_in:
         nclass_byuser_outfile = "project_nclass_byuser_ranked.csv"
-    nc.to_csv(nclass_byuser_outfile)
+    nclass_byuser_ranked.to_csv(nclass_byuser_outfile)
+
+    nclass_loggedin_outfile = nclass_byuser_outfile.replace("byuser", "byuser_loggedin")
+    nc_logged_in.to_csv(nclass_loggedin_outfile)
+
 
     # very basic stats
     nclass_med    = np.median(nclass_byuser)
@@ -523,8 +540,8 @@ def basic_stats_processing(classfile_in, workflow_id=-1, workflow_version=-1, wo
         print("The most classified subject has %d classifications; the least-classified subject has %d.\n" % (subj_class_max,subj_class_min))
         print("Median number of classifications per user: %.2f" %nclass_med)
         print("Mean number of classifications per user: %.2f" % nclass_mean)
-        print("\nTop 10 most prolific classifiers:")
-        print(nclass_byuser_ranked.head(10))
+        print("\nTop 10 most prolific classifiers (with classification counts):")
+        print(nclass_byuser_ranked['n_class'].head(10))
         print("\n\nGini coefficient for classifications by user: %.2f" % nclass_gini)
         print("\nClassifications were collected between %s and %s." % (first_class_day, last_class_day))
         print("The highest classification id considered here is %d.\n" % max(classifications.classification_id))
@@ -623,6 +640,7 @@ def basic_stats_processing(classfile_in, workflow_id=-1, workflow_version=-1, wo
 
     if verbose:
         print("File with ranked list of user classification counts written to %s ." % nclass_byuser_outfile)
+        print("    and the same, but logged-in only, written to %s ." % nclass_loggedin_outfile)
 
     if remove_duplicates:
         if (n_dups > 0):
@@ -713,7 +731,8 @@ if __name__ == '__main__':
     # by default we won't worry about computing how much time effort the volunteers cumulatively spent
     time_elapsed = False
     # by default we won't write the subset of classifications we used to a new csv file
-    output_csv = False
+    output_csv  = False
+    outfile_csv = ''
     # by default we'll ignore the possibility of duplicate classifications
     # note duplicates are relatively rare, usually <2% of all classifications
     # the Zooniverse has squashed several bugs related to this, but some still
@@ -725,6 +744,7 @@ if __name__ == '__main__':
     keep_allcols = False
     # by default, print all the progress statements and stats
     verbose = True
+
 
     # check for other command-line arguments
     if len(sys.argv) > 2:
@@ -787,7 +807,7 @@ if __name__ == '__main__':
 
 
 
-    basic_stats_processing(classfile_in, workflow_id=workflow_id, workflow_version=workflow_version, workflow_ver_min=workflow_ver_min, workflow_ver_max=workflow_ver_max, time_elapsed=time_elapsed, output_csv=output_csv, remove_duplicates=remove_duplicates, keep_nonlive=keep_nonlive, keep_allcols=keep_allcols, verbose=verbose)
+    basic_stats_processing(classfile_in, workflow_id=workflow_id, workflow_version=workflow_version, workflow_ver_min=workflow_ver_min, workflow_ver_max=workflow_ver_max, time_elapsed=time_elapsed, output_csv=output_csv, outfile_csv=outfile_csv, remove_duplicates=remove_duplicates, keep_nonlive=keep_nonlive, keep_allcols=keep_allcols, verbose=verbose)
 
 
 

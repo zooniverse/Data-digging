@@ -40,15 +40,13 @@ Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in
     Run this program without any inputs to see its various options re: specifying workflow_ids, removing duplicate classifications, etc. There are enough possible variations (with the additional option to output a "cleaned" classification file) that this program is useful for filtering a full classification export into sub-files with, e.g., only the live, non-duplicate classifications for the workflow ID and version of your choice.
 
  - `basic_project_stats.py` - this is a command-line only version of `basic_classification_processing.py` and is no longer updated.
- 
+
  - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
     - meant to be imported: `from get_workflow_info import get_workflow_info`
     - takes dataframes containing the raw contents of workflow and workflow-contents exports requested from the project builder
     - returns a list of tasks and details about each of them. Details in the initial comments of the script.
 
  - `make_author_list.py` - creates a markdown list of users for crediting on the team/results page. Can take ranked user list output from `basic_project_stats.py`. Run without inputs to get details.
-
- - `match_user_lists.py` - classification exports currently don't include `credited_name` or `display_name` fields, which each user can fill in if they'd prefer a proper name to be used to give credit. The best way to get those is to use `basic_project_stats.py` to generate a list of users you need names for, then ask the Zooniverse team (e.g. @mrniaboc). Once you receive the list back with credited/display names, it may not be in the order you were expecting and may not contain the info needed to re-order it the way you want. To match it back to whatever ranked file you prefer to use, run this program to combine the ranked file with the credited-name file and generate the input for `make_author_list.py`. If at some future date classification exports include the `credited_name` column, you won't need this.
 
  - `sessions_inproj_byuser.py` - computes classification and session statistics for classifiers. Run at the the command line without additional inputs to see the usage. *Output columns:*
     - *n_class:* total number of classifications by the classifier
