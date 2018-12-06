@@ -112,12 +112,13 @@ def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
     # currently classification exports call it "user_name" and the Panoptes DB
     #    calls it "login"
 
+    missing_ids = []
+
     if whichtype == 'user_id':
         # user ID lookup has a different format for the query
 
         # also it fails with an error instead of a 0-length array
         # so let's catch those but keep trying
-        missing_ids = []
 
         for i, the_id in enumerate(vols):
             id_ok = True
@@ -145,26 +146,37 @@ def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
                
 
 
-        if (len(missing_ids) > 0) & (verbosity > 0):
-            print(" WARNING: id search turned up %d bad result(s), your list may be incomplete!" % len(missing_ids))
-
-            if verbosity >= 2:
-                print("  Here are the ids it returned an error on:")
-                print(missing_ids)
-
     else:
         # if we're here we don't have user ID but presumably do have login/username
         for i, the_login in enumerate(vols):
             name_use = the_login
-            for user in User.where(login=the_login):
-                try:
-                    name_use = user.credited_name
-                except:
-                    name_use = user.display_name
-            #credited_names[the_login] = cname
-            disp_names.loc[(vols==the_login)] = name_use
-            if i % i_print == 0:
-                print("Credited name: lookup %d of %d (%s --> %s)" % (i, len(vols), the_login, name_use))
+            the_user = User.where(login=the_login)
+            if the_user.object_count > 0:
+                for user in the_user:
+                    try:
+                        name_use = user.credited_name
+                    except:
+                        name_use = user.display_name
+                #credited_names[the_login] = cname
+                disp_names.loc[(vols==the_login)] = name_use
+                if i % i_print == 0:
+                    print("Credited name: lookup %d of %d (%s --> %s)" % (i, len(vols), the_login, name_use))
+            else:
+                # the name lookup didn't work, so save it
+                missing_ids.append(the_login)
+                print("  WARNING: User not found: %s" % the_login)
+                if i % i_print == 0:
+                    print("Credited name: lookup %d of %d (%s --> ___MISSING_OR_ERROR___%d___)" % (i, len(vols), the_login, len(missing_ids)))
+
+
+
+    if (len(missing_ids) > 0) & (verbosity > 0):
+        print(" WARNING: id search turned up %d bad result(s), your list may be incomplete!" % len(missing_ids))
+
+        if verbosity >= 2:
+            print("  Here are the ids it returned an error on:")
+            print(missing_ids)
+
 
 
     return disp_names
