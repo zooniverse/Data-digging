@@ -123,8 +123,9 @@ def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
             id_ok = True
             try:
                 user = User.find(int(the_id))
-            except:
+            except Exception as e:
                 id_ok = False
+                print(e)
                 missing_ids.append(int(the_id))
 
             if id_ok:
