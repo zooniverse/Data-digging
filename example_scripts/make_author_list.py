@@ -93,9 +93,11 @@ def get_best_name(row, author_col, author_col_backup):
 
 def get_credited_name_all(vols, whichtype='user_id', verbosity=2):
     from panoptes_client import User
-    from panoptes_connect import panoptes_connect
 
-    x = panoptes_connect()
+    # nevermind, we don't need this because credited names and usernames are public
+    # from panoptes_connect import panoptes_connect
+
+    # x = panoptes_connect()
 
     disp_names = vols.copy()
     i_print = int(len(vols)/10)
