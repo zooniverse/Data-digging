@@ -29,7 +29,7 @@ Marking star cluster locations in Hubble Space Telescope images.
 #### [Arizona Batwatch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch)
 Watch videos of bats flying around their roost and tag the behaviors that you see.
 
-*Scripts* -- to 1) turn original videos into smaller duration videos and populate a manifest and 2) upload subjects with manifest to Panoptes found in  [this repo](https://github.com/mcbouslog/ArizonaBatWatch).
+*Scripts* -- to 1) turn original videos into smaller duration videos and populate a manifest and 2) upload subjects with manifest to Panoptes found in  [this repo](https://github.com/zooniverse/ArizonaBatWatch).
 
 #### [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war)
 The decoding the civil war project invites volunteers to transcribe contemporary, hand-written transcripts of telegrams sent between allies during the American Civil War. Portions of these transcripts are enciphered using whole-word substitutions. The ultimate goal of the project is to allow volunteers to identify these substituted words based on their contextual appropriateness.
