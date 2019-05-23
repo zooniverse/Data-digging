@@ -107,7 +107,7 @@ A survey of species from camera trap data in Kenya.
 #### Galaxy Zoo Touch Table
 Classifying galaxies according to shape on a touch table device.
 
-*Scripts* -- In order to prepare a device's local database, this script will read a Panoptes classification export csv and produce an appropriately parsed csv file that is ready for import as a database (.db) file.
+*Scripts* -- In order to prepare a device's local database, this script will read a Panoptes subject export csv and produce an appropriately parsed csv file that is ready for import as a database (.db) file.
 
 ### Older Scripts (Ouroboros-based)
 

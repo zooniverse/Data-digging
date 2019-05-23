@@ -34,7 +34,7 @@ def preprocessing():
     # Drop unnecessary columns and rearrange
     classifications = classifications[['subject_id', 'classifications_count', 'ra', 'dec', 'image', 'smooth', 'features', 'star']]
 
-    # Create a parsed CSV with headers removed for DB import
-    classifications.to_csv('parsed-subject-set.csv',sep=',',index = False,encoding='utf-8',header=False)
+    # Create a parsed CSV for DB import
+    classifications.to_csv('parsed-subject-set.csv',sep=',',index = False,encoding='utf-8')
 
 preprocessing()
