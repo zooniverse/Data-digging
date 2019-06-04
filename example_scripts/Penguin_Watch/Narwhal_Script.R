@@ -2,11 +2,10 @@
                                 ### Narwhal Script - R code to create a Narwhal File ###
 
 ## Narwhal Files provide count data for adults, chicks and eggs, nearest neighbour distances (and change in nearest
-## neighbour distance between the ith and ith-1 image) for adults and chicks, and metadata, per image.
+## neighbour distance between the ith and i-1th image) for adults and chicks, and metadata, per image.
 ## See corresponding paper for more information. 
 ## Required files:
 ## 1) 'Kraken Files' (Data Citation 2), generated using the Kraken Script.
-## 2) 'Penguin Watch Manifest' (Data Citation 2).
 ## See the corresponding paper for more information about these file types.
 
 
@@ -141,7 +140,7 @@ meanchangechick[i]<-mean(prevchickndout)
 
 }
 
-## Calculate temperature (rounded to 2dp) in degrees Celcius from the Fahrenheit values, and assign to 'tempc'.
+## Calculate temperature (rounded to 2dp) in degrees Celsius from the Fahrenheit values, and assign to 'tempc'.
 tempc<-(tempf-32)/1.8
 tempc<- round(tempc,2)
 
