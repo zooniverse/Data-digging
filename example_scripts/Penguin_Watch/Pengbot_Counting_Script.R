@@ -36,6 +36,9 @@ aspect<-0.75
 ## to be changed depending on image dimensions (in number of pixels); 2048x1536 is the standard for Penguin Watch
 ## images (there are also a number of 1920x1080 images; the dimensions should always be checked).
 
+## Note that '(filenames)+1' may need to be used to ensure that the true final image is plotted correctly. This will cause an error
+## message (since image length(filenames)+1 does not exist) that can be ignored.
+
 npeng<-NULL
 
   for (i in 1:(length(filenames)+1)){
