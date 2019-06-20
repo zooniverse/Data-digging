@@ -28,11 +28,13 @@ def preprocessing():
                 if column in ['ra', 'dec', '!ra', '!dec']:
                     strippedPunctuation = column.strip(string.punctuation)
                     classifications.loc[index, strippedPunctuation] = row['metadata'][column]
+                if column in ['iauname', '!iauname']:
+                    classifications.loc[index, 'filename'] = row['metadata'][column]
             for column in row['locations']:
                 classifications.loc[index, 'image'] = row['locations'][column]
 
     # Drop unnecessary columns and rearrange
-    classifications = classifications[['subject_id', 'classifications_count', 'ra', 'dec', 'image', 'smooth', 'features', 'star']]
+    classifications = classifications[['subject_id', 'classifications_count', 'ra', 'dec', 'image', 'filename', 'smooth', 'features', 'star']]
 
     # Create a parsed CSV for DB import
     classifications.to_csv('parsed-subject-set.csv',sep=',',index = False,encoding='utf-8')
