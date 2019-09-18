@@ -9,8 +9,8 @@ def preprocessing():
     # Read the local CSV subject export
     classifications=pd.read_csv("classification-export.csv")
 
-    classifications['metadata']=classifications['metadata'].map(lambda x: json.loads(x))
-    classifications['locations']=classifications['locations'].map(lambda x: json.loads(x))
+    classifications['metadata']=classifications['metadata'].apply(lambda x: json.loads(x))
+    classifications['locations']=classifications['locations'].apply(lambda x: json.loads(x))
 
     # Include in subject_set_ids all subject sets you want to keep
     subject_set_ids = [];
