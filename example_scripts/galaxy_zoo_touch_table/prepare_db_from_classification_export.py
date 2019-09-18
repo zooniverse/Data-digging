@@ -39,6 +39,6 @@ def preprocessing():
     classifications = classifications[['subject_id', 'classifications_count', 'ra', 'dec', 'image', 'filename', 'smooth', 'features', 'star']]
 
     # Create a parsed CSV for DB import
-    classifications.to_csv('parsed-subject-set.csv',sep=',',index = False,encoding='utf-8')
+    classifications.to_csv('parsed-subject-set.csv',index = False,encoding='utf-8')
 
 preprocessing()
