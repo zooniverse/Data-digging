@@ -16,7 +16,7 @@ Some issues that all or most of these scripts address:
    - removing duplicate classifications (if they occur)
    - dealing with empty classifications (some projects throw them out, others count them as "nothing here" votes)
    - only including classifications from the most up-to-date workflow version(s)
-   
+
  For R code that addresses these issues, please see www.github.com/aliburchard/DataProcessing.
 
 #### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
@@ -103,6 +103,11 @@ A survey of species from camera trap data in Kenya.
 *Scripts* -- Jailbreak survey annotations into a format more easily digestible by external scripts (1 line per species ID or "nothing here" classification), aggregate jailbroken annotations into a flattened CSV file with one line per subject. Also uses general utility scripts.
 
 *Marker type* -- Survey
+
+#### Galaxy Zoo Touch Table
+Classifying galaxies according to shape on a touch table device.
+
+*Scripts* -- In order to prepare a device's local database, this script will read a Panoptes subject export csv and produce an appropriately parsed csv file that is ready for import as a database (.db) file.
 
 ### Older Scripts (Ouroboros-based)
 
