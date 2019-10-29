@@ -29,7 +29,7 @@ Notes:
 
 Pro Tips:
 - You can write the the list to a file:
-  python (thisfile).py (zooniverse_classifications_export).csv | duplicates.csv
+  python (thisfile).py (zooniverse_classifications_export).csv > duplicates.csv
 - You can compare the number of Classifications with duplicates vs the number of
   total Classifications: (remember to minus 1 from the numbers to account for
   the header row)
