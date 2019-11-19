@@ -41,7 +41,7 @@ The bespoke consensus and aggregation code written for this project is archived 
 #### [Exoplanet Explorers](https://www.zooniverse.org/projects/ianc2/exoplanet-explorers)
 An exoplanet-finding project run as part of Stargazing Live.
 
-*Scripts* -- Aggregate simple question task (with weighting). Save outputs to Google Drive folder for easy data sharing. This script is adapted from the Pulsar Hunters aggregation script described below; it may be more generally applicable because it doesn't need a bunch of additional files with gold-standard data etc.
+*Scripts* -- Aggregate simple question task (with weighting). Save outputs to Google Drive folder for easy data sharing. This script is adapted from the Pulsar Hunters aggregation script described below; it may be more generally applicable because it doesn't need a bunch of additional files with gold-standard data etc. *Update:* There is now also an aggregation script that's meant to run on a big classification export (the example is 16GB) without requiring a lot of memory, for those whose computers aren't at the bleeding edge in terms of their RAM.
 
 *Marker Type* -- question task
 
