@@ -6,7 +6,7 @@ Scripts in the top-level directory should work for any Panoptes project, and are
 ## Where do I begin?
 
 If you have a raw classifications export file and aren't sure where to start:
- - try the Jupyter notebooks `00 - First Look at Classifications` and `01 - Project Stats and Cleaning Classification Files`. They will step you through making use of the script `basic_classification_processing.py`.
+ - try the Jupyter notebooks. They will step you through making use of the scripts `basic_classification_processing.py` and `make_author_list.py`.
 
  - Or, jump straight into using [basic_classification_processing.py](basic_classification_processing.py). You can run this from the command line or import it into your existing scripts. It will give you the basic information about your project's classifications but it can *also* clean your export of duplicate classifications, extract classifications from only specific workflows and/or from only Live-mode project dates, and save the cleaned classification file to a new file. It will also give you a file listing classification counts for each user. More information below.
 
@@ -41,7 +41,7 @@ Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in
 
  - `basic_project_stats.py` - this is a command-line only version of `basic_classification_processing.py` and is no longer updated.
  
-- `check_for_duplicate_marks.py` - checks the Classifications export for a workflow with point-type drawing tasks to see if there are duplicate annotations. Created in response to [PFE issue 5527](https://github.com/zooniverse/Panoptes-Front-End/issues/5527) where annotations on touchscreen devices would be incorrectly created twice.
+ - `check_for_duplicate_marks.py` - checks the Classifications export for a workflow with point-type drawing tasks to see if there are duplicate annotations. Created in response to [PFE issue 5527](https://github.com/zooniverse/Panoptes-Front-End/issues/5527) where annotations on touchscreen devices would be incorrectly created twice.
  
  - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
     - meant to be imported: `from get_workflow_info import get_workflow_info`
@@ -49,8 +49,6 @@ Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in
     - returns a list of tasks and details about each of them. Details in the initial comments of the script.
 
  - `make_author_list.py` - creates a markdown list of users for crediting on the team/results page. Can take ranked user list output from `basic_project_stats.py`. Run without inputs to get details.
-
- - `match_user_lists.py` - classification exports currently don't include `credited_name` or `display_name` fields, which each user can fill in if they'd prefer a proper name to be used to give credit. The best way to get those is to use `basic_project_stats.py` to generate a list of users you need names for, then ask the Zooniverse team (e.g. @mrniaboc). Once you receive the list back with credited/display names, it may not be in the order you were expecting and may not contain the info needed to re-order it the way you want. To match it back to whatever ranked file you prefer to use, run this program to combine the ranked file with the credited-name file and generate the input for `make_author_list.py`. If at some future date classification exports include the `credited_name` column, you won't need this.
 
  - `sessions_inproj_byuser.py` - computes classification and session statistics for classifiers. Run at the the command line without additional inputs to see the usage. *Output columns:*
     - *n_class:* total number of classifications by the classifier
