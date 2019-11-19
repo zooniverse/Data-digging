@@ -1,0 +1,3 @@
+Folder to place scripts (or links to scripts) on pre-processing of drone imaging for upload into a Zooniverse project. 
+
+Response from https://www.zooniverse.org/projects/sweenkl/steller-watch: we use R machine learning packages (like Keras) to automate counts/image processing of NFS/SSL. We use U-Net for image segmentation ( https://github.com/zhixuhao/unet). That's worth a try! The way we split our images is into two so I'm not sure it'd help with mosaics. 
