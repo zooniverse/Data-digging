@@ -10,3 +10,5 @@ This repository contains scripts and documentation related to analyzing classifi
 *scripts_ProjectExamples*: This directory holds project-specific subdirectories, each with scripts and data files.
 
 *scripts_Utility*: This directory holds Python scripts for one-off tasks.
+
+*other_code*: This directory holds other relevant Zooniverse code and ***links to external code repos***.
