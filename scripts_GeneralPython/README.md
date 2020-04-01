@@ -1,7 +1,7 @@
-# example_scripts
-Tools for analysis of classification and subject data from github.com/zooniverse/Panoptes, which have been tested on projects.
+# scripts_GeneralPython
+Tools for analysis of classification and subject data from Zooniverse [Panoptes](https://github.com/zooniverse/Panoptes) [Project Builder](https://www.zooniverse.org/lab).
 
-Scripts in the top-level directory should work for any Panoptes project, and are sometimes used by more project-specific scripts in sub-directories.
+Scripts in this directory should work for any Panoptes project. For project-specific scripts, see *scripts_ProjectExamples* directory.
 
 ## Where do I begin?
 
@@ -40,9 +40,9 @@ Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in
     Run this program without any inputs to see its various options re: specifying workflow_ids, removing duplicate classifications, etc. There are enough possible variations (with the additional option to output a "cleaned" classification file) that this program is useful for filtering a full classification export into sub-files with, e.g., only the live, non-duplicate classifications for the workflow ID and version of your choice.
 
  - `basic_project_stats.py` - this is a command-line only version of `basic_classification_processing.py` and is no longer updated.
- 
+
  - `check_for_duplicate_marks.py` - checks the Classifications export for a workflow with point-type drawing tasks to see if there are duplicate annotations. Created in response to [PFE issue 5527](https://github.com/zooniverse/Panoptes-Front-End/issues/5527) where annotations on touchscreen devices would be incorrectly created twice.
- 
+
  - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
     - meant to be imported: `from get_workflow_info import get_workflow_info`
     - takes dataframes containing the raw contents of workflow and workflow-contents exports requested from the project builder

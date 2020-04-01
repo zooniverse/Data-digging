@@ -1,78 +1,119 @@
-# example_scripts
-Tools for analysis of classification and subject data from github.com/zooniverse/Panoptes, which have been tested on projects.
+# scripts_ProjectExamples
+Project-specific scripts in sub-directories.
 
-Scripts in the top-level directory should work for any Panoptes project, and are sometimes used by more project-specific scripts in sub-directories.
+### Project Descriptions
+Below we describe the analysis components implemented in each processing script.  Feel free to pick-and-choose features described below when writing new scripts for your own project.
 
-## Where do I begin?
+Some issues that all or most of these scripts address:
+ - extracting classification marks/answers from within the JSON fields of the CSV classification data exports
+ - cleaning the classification export files:
+   - removing duplicate classifications (if they occur)
+   - dealing with empty classifications (some projects throw them out, others count them as "nothing here" votes)
+   - only including classifications from the most up-to-date workflow version(s)
 
-If you have a raw classifications export file and aren't sure where to start:
- - try the Jupyter notebooks. They will step you through making use of the scripts `basic_classification_processing.py` and `make_author_list.py`.
+NOTE: For R code that addresses these issues, please see https://www.github.com/aliburchard/DataProcessing.
 
- - Or, jump straight into using [basic_classification_processing.py](basic_classification_processing.py). You can run this from the command line or import it into your existing scripts. It will give you the basic information about your project's classifications but it can *also* clean your export of duplicate classifications, extract classifications from only specific workflows and/or from only Live-mode project dates, and save the cleaned classification file to a new file. It will also give you a file listing classification counts for each user. More information below.
+#### [Andromeda Project Example Project](https://www.zooniverse.org/projects/lcjohnso/ap-aas229-test)
+Marking star cluster locations in Hubble Space Telescope images.
 
-Scripts in each project directory may contain code that needs to be modified to work on a different project, or that would need to be generalized to make them applicable to any project.
+*Script* -- Creates CSV of circular marker info from simple marking workflow.
 
-Both *basic_project_stats.py* and *sessions_inproj_byuser.py* were originally in the [panoptes_analysis](https://github.com/vrooje/panoptes_analysis) repo. They both can run on the classification export from Galaxy Zoo Bar Lengths, which is included in this repo. But they should run fine on any classification export, so long as you're operating in the Python environment defined by *basic_project_stats.yml* (for both scripts).
+*Marker type* -- circle
 
-### More details on the general scripts in this directory
+#### [Arizona Batwatch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch)
+Watch videos of bats flying around their roost and tag the behaviors that you see.
 
- - `active_users_timeseries.py` - makes a classification and user count timeseries, binned hourly, for logged-in and non-logged-in users. Outputs to files:
-    - A csv file containing the timeseries
-    - a plot of classifications per hour, with different shadings for logged-in and not-logged-in users (pdf and png)
-    - a plot of active users per hour, with different shadings for logged-in and not-logged-in users (pdf and png)
-    - a plot of the fraction of logged-in classifications and users per hour (pdf and png)
+*Scripts* -- to 1) turn original videos into smaller duration videos and populate a manifest and 2) upload subjects with manifest to Panoptes found in  [this repo](https://github.com/zooniverse/ArizonaBatWatch).
 
-- `aggregate_question_utils.py` - utility functions for question task aggregation:
-    - meant to be imported by other codes
-    - breaks question annotations out of the raw "annotations" column of data export CSVs (deals with the JSON)
-    - aggregates question votes into vote fractions. Can be weighted or unweighted aggregation depending on how you populate the 'count' column of the classifications dataframe you pass it.
-    - example usage: see `galaxy_zoo_bar_lengths` folder.
+#### [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war)
+The decoding the civil war project invites volunteers to transcribe contemporary, hand-written transcripts of telegrams sent between allies during the American Civil War. Portions of these transcripts are enciphered using whole-word substitutions. The ultimate goal of the project is to allow volunteers to identify these substituted words based on their contextual appropriateness.
 
- - `basic_classification_processing.py` - computes basic statistics from a raw classification export file. Run without any inputs to see usage details. In default mode, outputs to screen:
-    - Total number of classifications
-    - Total number of classifiers (registered and unregistered)
-    - Stats on classifications per subject
-    - Stats on classifications per user
-    - Top 10 most prolific classifiers (note: for your edification only; I strongly recommend *against* publishing this)
-    - Gini coefficient for classifications (more details on this in the code, as comments)
-    - [optional] total human effort expended by classifiers in the project
+The bespoke consensus and aggregation code written for this project is archived and documented in a [separate repository](https://github.com/hughdickinson/DCWConsensus).
 
-    Run this program without any inputs to see its various options re: specifying workflow_ids, removing duplicate classifications, etc. There are enough possible variations (with the additional option to output a "cleaned" classification file) that this program is useful for filtering a full classification export into sub-files with, e.g., only the live, non-duplicate classifications for the workflow ID and version of your choice.
+*Marker type* -- line, text input attached to mark
 
- - `basic_project_stats.py` - this is a command-line only version of `basic_classification_processing.py` and is no longer updated.
- 
- - `check_for_duplicate_marks.py` - checks the Classifications export for a workflow with point-type drawing tasks to see if there are duplicate annotations. Created in response to [PFE issue 5527](https://github.com/zooniverse/Panoptes-Front-End/issues/5527) where annotations on touchscreen devices would be incorrectly created twice.
- 
- - `get_workflow_info.py` - extracts information about a given workflow from a json and returns it as a list. Details:
-    - meant to be imported: `from get_workflow_info import get_workflow_info`
-    - takes dataframes containing the raw contents of workflow and workflow-contents exports requested from the project builder
-    - returns a list of tasks and details about each of them. Details in the initial comments of the script.
+#### [Exoplanet Explorers](https://www.zooniverse.org/projects/ianc2/exoplanet-explorers)
+An exoplanet-finding project run as part of Stargazing Live.
 
- - `make_author_list.py` - creates a markdown list of users for crediting on the team/results page. Can take ranked user list output from `basic_project_stats.py`. Run without inputs to get details.
+*Scripts* -- Aggregate simple question task (with weighting). Save outputs to Google Drive folder for easy data sharing. This script is adapted from the Pulsar Hunters aggregation script described below; it may be more generally applicable because it doesn't need a bunch of additional files with gold-standard data etc. *Update:* There is now also an aggregation script that's meant to run on a big classification export (the example is 16GB) without requiring a lot of memory, for those whose computers aren't at the bleeding edge in terms of their RAM.
 
- - `sessions_inproj_byuser.py` - computes classification and session statistics for classifiers. Run at the the command line without additional inputs to see the usage. *Output columns:*
-    - *n_class:* total number of classifications by the classifier
-    - *n_sessions:* total number of sessions by the classifier
-    - *n_days:* number of unique days on which the classifier has classified
-    - *first_day:* date of first classification (YYYY-MM-DD)
-    - *last_day:* date of last classification (YYYY-MM-DD)
-    - *tdiff_firstlast_hours:* time elapsed between first and last classification (hours)
-    - *time_spent_classifying_total_minutes:* total time spent actually classifying, i.e. work effort (minutes)
-    - *class_per_session_min:* minimum number of classifications per session
-    - *class_per_session_max:* maximum number of classifications per session
-    - *class_per_session_med:* median number of classifications per session
-    - *class_per_session_mean:* mean number of classifications per session
-    - *class_length_mean_overall:* mean length of a single classification (minutes), over all sessions
-    - *class_length_median_overall:* median length of a single classification (minutes), over all sessions
-    - *session_length_mean:* mean length of a session (minutes)
-    - *session_length_median:* median length of a session (minutes)
-    - *session_length_min:* length of shortest session (minutes)
-    - *session_length_max:* length of longest session (minutes)
-    - *which_session_longest:* session number of classifier's longest session (by time spent)
-    - *mean_session_length_first2:* mean session length in the classifier's first 2 sessions (minutes)
-    - *mean_session_length_last2:* mean session length in the classifier's last 2 sessions (minutes)
-    - *mean_class_length_first2:* mean classification length in the classifier's first 2 sessions (minutes)
-    - *mean_class_length_last2:* mean classification length in the classifier's last 2 sessions (minutes)
-    - *class_count_session_list:* classification counts in each session, formatted as: [n_class_1; n_class_2; ...]
+*Marker Type* -- question task
 
-The mean session and classification lengths in the first 2 and last 2 sessions are only calculated if the user has classified in at least 4 sessions; otherwise the values are 0.
+#### [Flying HI](https://www.zooniverse.org/projects/vrooje/flying-hi)
+A beta project to examine HI structures in the Milky Way.
+
+*Scripts* -- Extracts markings from classification file into individual files (ready for clustering).
+
+*Marker type* -- line, point, ellipse, text input attached to mark
+
+#### [Focus on Wildlife -- Cleveland Metroparks](https://www.zooniverse.org/projects/pat-lorch/focus-on-wildlife-cleveland-metroparks)
+A survey project run by Cleveland Metroparks.
+
+*Scripts* -- Adapts the survey aggregation script initially developed and tested for Wildwatch Kenya (described below)
+
+*Marker type* -- Survey
+
+#### [Galaxy Zoo Bar Lengths](https://www.zooniverse.org/projects/vrooje/galaxy-zoo-bar-lengths/)
+Answering questions about the presence of bar structures and marking bar dimensions.
+
+*Scripts* -- Analyzes joint question+marking workflow (but mostly the markings).
+
+*Marker type* -- line
+
+#### [Notes from Nature](https://www.notesfromnature.org)
+A transcription project for museum collections. The label reconciliation scripts are maintained in a [separate repository](https://github.com/juliema/label_reconciliations).
+
+#### [Planetary Response Network](https://www.zooniverse.org/projects/vrooje/planetary-response-network-and-rescue-global-ecuador-earthquake-2016)
+Extracting markings of damage and other features from post-disaster satellite imagery.
+
+*Script* -- puts classification information together with geocoordinate information from subject exports.
+
+*Marker type* -- point, polygon (though these aren't reduced here)
+
+#### [Planet 9 Project](https://www.zooniverse.org/projects/marckuchner/backyard-worlds-planet-9)
+Marking interesting objects (including moving objects) in images from the WISE satellite.
+
+*Script* -- Creates CSV of point marker info from simple marking workflow.
+
+*Marker type* -- point
+
+#### [Pulsar Hunters](https://www.zooniverse.org/projects/zooniverse/pulsar-hunters)
+Classification of radio observations to identify pulsar candidates.
+
+*Scripts* -- Analyzes responses and aggregates object type answer, also script for counting classifications. IP address tracking was wonky during this project, so unique non-logged-in users were identified with browser session info instead.
+
+*Marker type* -- no markers, only 1 question task
+
+#### [Steller Watch](https://www.zooniverse.org/projects/sweenkl/steller-watch)
+Workflow #1: Yes/No if sea lions are present.
+
+*Scripts* -- 1) Extracts normal csv from embedded JSON. 2) Aggregates results.
+
+*Marker type* -- no marks, only question tasks
+
+#### [Wildwatch Kenya](https://www.zooniverse.org/projects/sandiegozooglobal/wildwatch-kenya)
+A survey of species from camera trap data in Kenya.
+
+*Scripts* -- Jailbreak survey annotations into a format more easily digestible by external scripts (1 line per species ID or "nothing here" classification), aggregate jailbroken annotations into a flattened CSV file with one line per subject. Also uses general utility scripts.
+
+*Marker type* -- Survey
+
+#### Galaxy Zoo Touch Table
+Classifying galaxies according to shape on a touch table device.
+
+*Scripts* -- In order to prepare a device's local database, this script will read a Panoptes subject export csv and produce an appropriately parsed csv file that is ready for import as a database (.db) file.
+
+### Older Scripts (Ouroboros-based)
+
+#### Galaxy Zoo
+
+##### Misc
+Includes scripts that generate progress reports for Ouroboros-based GZ project, and decision tree processing
+
+##### Talk
+Scripts that compute statistics and analyzes Talk data for Ouroboros-based GZ project.
+
+##### Reduction
+Fairly general scripts to process Galaxy Zoo classification database dumps into
+vote fractions for each subject and match with subject metadata.  Note that
+this does not (yet) include debiasing.
