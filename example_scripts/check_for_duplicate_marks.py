@@ -1,6 +1,6 @@
 """
-Zooniverse.org - Check For Duplicate Marks
-------------------------------------------
+Zooniverse.org - Check For Duplicate Marks v3.0
+-----------------------------------------------
 
 Checks for duplicate 'point-type drawing task' annotation marks in Zooniverse
 Classifications. A mark is considered a duplicate if it has the same {x, y}
@@ -34,8 +34,14 @@ Pro Tips:
   total Classifications: (remember to minus 1 from the numbers to account for
   the header row)
   wc -l duplicates.csv zooniverse_classifications_export.csv
+  
+History:
+- Original code published 2019.10.29 
+- Updated on 2020.04.22 to correct for actual format of Classifications exports
+  from Zooniverse.org. Delimiter was changed from ';' to ',' and the 'id' column
+  renamed to 'classification_id'.
 
-(@shaunanoordin 2019.10.29)
+(@shaunanoordin 2020.04.22)
 
 """
 
@@ -56,7 +62,7 @@ input_filename = sys.argv[1]
 def main(input_filename):
   try:
     with open(input_filename) as input_file:
-      reader = csv.DictReader(input_file, delimiter=';', quotechar='"')
+      reader = csv.DictReader(input_file, delimiter=',', quotechar='"')
 
       total_rows = 0
       rows_with_duplicates = 0
@@ -99,7 +105,7 @@ def print_classification(classification, duplicates):
   try:
     metadata = get_json_object(classification['metadata'])
     print(
-      '"' + classification['id'] + '",' +
+      '"' + classification['classification_id'] + '",' +
       '"' + classification['user_id'] + '",' +
       '"' + classification['created_at'] + '",' +
       '"' + metadata['session'] + '",' +
