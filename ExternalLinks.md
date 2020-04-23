@@ -8,9 +8,9 @@ Video Scripts:
 
 ## Projects
 
-[Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war): https://github.com/hughdickinson/DCWConsensus)
-[Mutual Muses](https://www.zooniverse.org/projects/melissaagill/mutual-muses): https://github.com/thegetty/mutual-muses
-[Scribes of the Cairo Geniza](https://www.scribesofthecairogeniza.org/): https://judaicadh.github.io/cairogeniza
-[Radio Meteor Zoo](https://www.zooniverse.org/projects/zooniverse/radio-meteor-zoo): https://github.com/calders/RadioMeteorZoo
-[Notes from Nature](https://www.notesfromnature.org/): https://github.com/juliema/label_reconciliations
-[Arizona Bat Watch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch): https://github.com/zooniverse/ArizonaBatWatch
+- [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war): https://github.com/hughdickinson/DCWConsensus
+- [Mutual Muses](https://www.zooniverse.org/projects/melissaagill/mutual-muses): https://github.com/thegetty/mutual-muses
+- [Scribes of the Cairo Geniza](https://www.scribesofthecairogeniza.org/): https://judaicadh.github.io/cairogeniza
+- [Radio Meteor Zoo](https://www.zooniverse.org/projects/zooniverse/radio-meteor-zoo): https://github.com/calders/RadioMeteorZoo
+- [Notes from Nature](https://www.notesfromnature.org/): https://github.com/juliema/label_reconciliations
+- [Arizona Bat Watch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch): https://github.com/zooniverse/ArizonaBatWatch
