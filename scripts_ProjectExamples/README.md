@@ -20,18 +20,6 @@ Marking star cluster locations in Hubble Space Telescope images.
 
 *Marker type* -- circle
 
-#### [Arizona Batwatch](https://www.zooniverse.org/projects/zooniverse/arizona-batwatch)
-Watch videos of bats flying around their roost and tag the behaviors that you see.
-
-*Scripts* -- to 1) turn original videos into smaller duration videos and populate a manifest and 2) upload subjects with manifest to Panoptes found in  [this repo](https://github.com/zooniverse/ArizonaBatWatch).
-
-#### [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war)
-The decoding the civil war project invites volunteers to transcribe contemporary, hand-written transcripts of telegrams sent between allies during the American Civil War. Portions of these transcripts are enciphered using whole-word substitutions. The ultimate goal of the project is to allow volunteers to identify these substituted words based on their contextual appropriateness.
-
-The bespoke consensus and aggregation code written for this project is archived and documented in a [separate repository](https://github.com/hughdickinson/DCWConsensus).
-
-*Marker type* -- line, text input attached to mark
-
 #### [Exoplanet Explorers](https://www.zooniverse.org/projects/ianc2/exoplanet-explorers)
 An exoplanet-finding project run as part of Stargazing Live.
 
@@ -59,9 +47,6 @@ Answering questions about the presence of bar structures and marking bar dimensi
 *Scripts* -- Analyzes joint question+marking workflow (but mostly the markings).
 
 *Marker type* -- line
-
-#### [Notes from Nature](https://www.notesfromnature.org)
-A transcription project for museum collections. The label reconciliation scripts are maintained in a [separate repository](https://github.com/juliema/label_reconciliations).
 
 #### [Planetary Response Network](https://www.zooniverse.org/projects/vrooje/planetary-response-network-and-rescue-global-ecuador-earthquake-2016)
 Extracting markings of damage and other features from post-disaster satellite imagery.
