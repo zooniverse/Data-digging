@@ -6,6 +6,9 @@ Video Scripts:
 - https://github.com/zooniverse/ArizonaBatWatch
 - https://github.com/celdermire/birdcams
 
+Bounding Box Crop and Subject Creation:
+- https://github.com/simensta/generate-subjects-from-rectangle-dropdown-annotations
+
 ## Projects
 
 - [Decoding the Civil War](https://www.zooniverse.org/projects/zooniverse/decoding-the-civil-war): https://github.com/hughdickinson/DCWConsensus
