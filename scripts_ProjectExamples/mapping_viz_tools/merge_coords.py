@@ -41,6 +41,7 @@ def toGeoJSON():
         merged = [[a, b] for a, b in zip(dict['lng'], dict['lat'])]
         feature = {
             'type': 'Feature',
+            "tippecanoe" : { "layer" : "kelp" },
             "properties": {
                 "name": "Floating Forest Data"
             },
@@ -56,7 +57,7 @@ def toGeoJSON():
         }
         geojson['features'].append(feature)
 
-    with open('coordinates.json', 'w') as output_file:
+    with open('kelp.json', 'w') as output_file:
         json.dump(geojson, output_file, indent=2)
 
 toGeoJSON()
