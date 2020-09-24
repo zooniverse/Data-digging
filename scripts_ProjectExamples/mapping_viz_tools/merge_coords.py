@@ -22,30 +22,9 @@ import json
 import string
 from ast import literal_eval
 
-# process may not be needed for mapping viz, but keeping it here for reference
-def process():
-    items = pd.read_csv("ffpoly_select.csv")
-    items['polydict'] = items['polydict'].apply(literal_eval)
-    items['polydict'].apply(lambda x: type(x))
-
-    index = 0
-
-    for dict in items['polydict']:
-        merged = [[a, b] for a, b in zip(dict['lng'], dict['lat'])]
-        items.at[index, 'coords'] = str(merged)
-        index += 1
-
-    del items['lng_mean']
-    del items['lat_mean']
-    del items['polydict']
-    items.to_csv('merged_coords.csv',index = False,encoding='utf-8')
-
 def toGeoJSON():
     items = pd.read_csv("ffpoly_select.csv")
-    items['polydict'] = items['polydict'].apply(literal_eval)
-    items['polydict'].apply(lambda x: type(x))
-
-    index = 0
+    items['polydict'] = [json.loads(q.replace("'", '"')) for q in items.polydict]
 
     geojson = {
         'type':'FeatureCollection',
@@ -76,10 +55,8 @@ def toGeoJSON():
             },
         }
         geojson['features'].append(feature)
-        index += 1
 
     with open('coordinates.json', 'w') as output_file:
         json.dump(geojson, output_file, indent=2)
 
-# process()
 toGeoJSON()
