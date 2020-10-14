@@ -10,6 +10,9 @@ use of training subjects - metadata edit and workflow configuration dict update.
 Note: additional Caesar config and workflow retirement criteria update by Zoo
 team member is required for use.
 
+- `delete_subjects.py`: Delete subjects (permanently!) selected based on subject
+set ID and range of subject IDs.  Edit Python script and run from command line.
+
 - `edit_metadata.py`: Add or edit fields in subject metadata for a given subject
 set or sets.  Edit Python script and run from command line.
 
