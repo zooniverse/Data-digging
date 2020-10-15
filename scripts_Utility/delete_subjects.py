@@ -1,4 +1,4 @@
-from panoptes_client import Panoptes, Workflow, SubjectSet
+from panoptes_client import Panoptes, SubjectSet, Subject
 
 ###################################
 
