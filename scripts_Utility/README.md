@@ -13,6 +13,9 @@ team member is required for use.
 - `delete_subjects.py`: Delete subjects (permanently!) selected based on subject
 set ID and range of subject IDs.  Edit Python script and run from command line.
 
+- `duplicate_subjects.py`: Create duplicate subjects given a list of existing
+subject IDs. New subjects are added to a specified project and subject set.
+
 - `edit_metadata.py`: Add or edit fields in subject metadata for a given subject
 set or sets.  Edit Python script and run from command line.
 
