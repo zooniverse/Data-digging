@@ -13,6 +13,9 @@ team member is required for use.
 - `delete_subjects.py`: Delete subjects (permanently!) selected based on subject
 set ID and range of subject IDs.  Edit Python script and run from command line.
 
+- `download_subject_images.py`: Download images from existing subjects for input
+subject set ID.  Edit Python script and run from command line.
+
 - `duplicate_subjects.py`: Create duplicate subjects given a list of existing
 subject IDs. New subjects are added to a specified project and subject set.
 
