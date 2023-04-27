@@ -16,8 +16,8 @@ if __name__ == '__main__':
     file_output = args.output_file
     combo_task_id = args.combo_task_id
 
-    with open(file_output, 'w') as csvout:
-        with open(file_input) as csvin:
+    with open(file_output, 'w', newline='', encoding='utf-8') as csvout:
+        with open(file_input, encoding='utf-8') as csvin:
             classifications = csv.DictReader(csvin)
             writer = csv.DictWriter(csvout, classifications.fieldnames)
             writer.writeheader()
@@ -28,5 +28,5 @@ if __name__ == '__main__':
                         for t in a['value']: 
                             annotations.append(t) 
                         annotations.remove(a)
-                c['annotations']=annotations
+                c['annotations']=json.dumps(annotations, ensure_ascii=False)
                 writer.writerow(c)
