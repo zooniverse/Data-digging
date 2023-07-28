@@ -6,7 +6,7 @@ import logging
 
 
 def clean_email_str(thevalue):
-    if isinstance(thevalue, basestring):
+    if isinstance(thevalue, str):
         thestr = thevalue
     else:
         thestr = str(thevalue).decode('utf-8').encode('utf-8', 'replace')
@@ -417,7 +417,7 @@ def make_author_list(infile, outfile, clean_emails=False, preformat=False, useco
 
         return authorlist
 
-    except Exception, e:
+    except Exception as e:
         logger.error('Failed to write to files: ' + str(e), exc_info=True)
         logger.info(" Returning author list so you don't have to start from scratch")
         return authorlist
