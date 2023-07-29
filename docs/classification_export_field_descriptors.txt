@@ -14,9 +14,9 @@ workflow_version (2 integers separated by '.') - The first integer represents th
 
 created_at (datetime in format YYYY-MM-DD HH:MM:SS UTC) - The time the classification is recorded in the Zooniverse database
 
-gold_standard (***format?***) - *** I don't know what goes here, as I haven't done any gold yet; it's always blank in my exports. Help? ***
+gold_standard (string,'true' if in gold mode, empty otherwise) - 'true' if in gold mode, empty otherwise ***
 
-expert (***format?***) - *** I don't know what goes here, as I haven't done any expert yet; it's always blank in my exports. Help? ***
+expert (string, 'true' if done by an expert collaborator, empty otherwise) - 'true' if done by an expert collaborator, empty otherwise *** I suppose by comparison with "gold_standard" ***
 
 metadata (JSON formatted string) - Information about the user's interface and the classification itself
 
