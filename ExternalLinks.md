@@ -2,6 +2,8 @@
 
 [Aggregations Code](https://github.com/zooniverse/aggregation-for-caesar/) ([Docs](https://aggregation-caesar.zooniverse.org/docs)): Essential codebase for processing Zooniverse classification data, mirroring many of the aggregation features available via [Caesar](https://help.zooniverse.org/next-steps/caesar-realtime-data-processing/).
 
+[DataScripts_UploadAndTransform](https://github.com/zooniverse/DataScripts_UploadAndTransform): Python scripts for directory-based subject upload and classification export transformation. In addition to scripts, there are Google Colab notebooks available to run code. Contributed by [Trevor Winger](https://github.com/trevorwinger).
+
 Video Scripts:
 - https://github.com/zooniverse/ArizonaBatWatch
 - https://github.com/celdermire/birdcams
