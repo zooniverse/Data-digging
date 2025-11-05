@@ -35,4 +35,4 @@ for ind,row in d.iterrows():
     s = Subject.find(row.subject_id)
     for key in meta_keys_to_edit:
         s.metadata[key]=row[key]
-    subject.save()
+    s.save()
