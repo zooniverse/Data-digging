@@ -1,11 +1,9 @@
 import argparse
 import io
 from panoptes_client import Panoptes, Subject, Project, SubjectSet
-import os, sys, getopt, urllib, json, csv
+import sys, json, csv
 import json
 import requests
-import typing
-
 
 class GeolocateClientError(Exception):
     pass
