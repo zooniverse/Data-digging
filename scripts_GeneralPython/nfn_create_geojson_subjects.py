@@ -90,9 +90,9 @@ if __name__ == "__main__":
             subject_set.add(subject)
             subjects_count += 1
         except GeolocateClientError as glc_e:
-            sys.stderr.write(f"API error on row: {row_number}\n {glc_e}")
+            sys.stderr.write(f"API error on row: {row_number}\n {glc_e}\n")
             continue
         except Exception as e:
-            print(f"Error reading CSV on row: {row_number} with error {e}")
+            print(f"Error reading CSV on row: {row_number} with error {e}\n")
             continue
     print(f"{subjects_count} GeoJson Subjects Created")
