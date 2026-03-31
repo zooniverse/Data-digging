@@ -86,7 +86,8 @@ if __name__ == "__main__":
                 'reference_data': reference_data
             }
             glc_subj_json_str = json.dumps(glc_subject_json)
-            metadata = {k: v for k, v in row.items() if k.startswith("metadata:")}
+            metadata_prefix = 'metadata:'
+            metadata = {k[len(metadata_prefix):]: v for k, v in row.items() if k.startswith(metadata_prefix)}
             bio = io.BytesIO(glc_subj_json_str.encode('utf-8'))
             subject.add_location(bio, manual_mimetype='application/json')
             subject.metadata.update(metadata)
