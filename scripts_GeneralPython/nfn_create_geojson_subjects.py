@@ -60,11 +60,16 @@ if __name__ == "__main__":
 
             first_glc_result = json_result['resultSet']['features'][0]
             transformed_glc_result = first_glc_result.copy()
-            transformed_glc_result['properties'] = transformed_glc_result['properties'].copy()
-            uncertainty_radius = transformed_glc_result['properties'].pop('uncertaintyRadiusMeters', None)
+            uncertainty_radius = first_glc_result.get("properties", {}).get("uncertaintyRadiusMeters")
             if uncertainty_radius == 'Unavailable':
                 uncertainty_radius = None
-            transformed_glc_result['properties']['uncertainty_radius'] = uncertainty_radius
+
+            transformed_glc_result = {
+                **first_glc_result,
+                'properties': {
+                    'uncertainty_radius': uncertainty_radius
+                }
+            }
             subject = Subject()
             subject.links.project = project
             reference_data = {
@@ -81,9 +86,10 @@ if __name__ == "__main__":
                 'reference_data': reference_data
             }
             glc_subj_json_str = json.dumps(glc_subject_json)
-
+            metadata = {k: v for k, v in row.items() if k.startswith("metadata:")}
             bio = io.BytesIO(glc_subj_json_str.encode('utf-8'))
             subject.add_location(bio, manual_mimetype='application/json')
+            subject.metadata.update(metadata)
             subject.save()
             subject_set.add(subject)
             subjects_count += 1
