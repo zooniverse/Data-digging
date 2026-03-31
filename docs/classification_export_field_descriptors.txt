@@ -4,19 +4,19 @@ user_name (string) - The user name of the person doing the classification
 
 user_id (integer) - A unique ID corresponding to the user_name
 
-user_ip (40-character hex string) - *** what is this exactly? a hash of something? what? ***
+user_ip (40-character hex string) - An anonymized hash of the user's IP address. This may be useful for grouping classifiations from non-logged-in users.
 
 workflow_id (integer) - A unique ID for the workflow done
 
 workflow_name (string) - The text name of the workflow done
 
-workflow_version (2 integers separated by '.') - The first integer represents the 'major' version and the second represents the 'minor' version. When tasks are changed (added, removed, etc.), the major version increments and the minor version is set to zero. *** Is this true? *** When just wording is changed, the minor version increments.
+workflow_version (2 integers separated by '.') - The first integer represents the 'major' version and the second represents the 'minor' version. When tasks are changed (added, removed, etc.), this increments the major version. When only wording is changed, this increments the minor version only.
 
 created_at (datetime in format YYYY-MM-DD HH:MM:SS UTC) - The time the classification is recorded in the Zooniverse database
 
-gold_standard (***format?***) - *** I don't know what goes here, as I haven't done any gold yet; it's always blank in my exports. Help? ***
+gold_standard (boolean) - If classification is submitted in "gold standard" mode, available to owners and experts, this status is noted here for the classification.
 
-expert (***format?***) - *** I don't know what goes here, as I haven't done any expert yet; it's always blank in my exports. Help? ***
+expert (string) - If classification is submitted in "gold standard" mode, this column notes the role type of the user: owner or expert.
 
 metadata (JSON formatted string) - Information about the user's interface and the classification itself
 
@@ -93,6 +93,5 @@ x (float) - the horizontal value of the point as a real number relative to *** w
 
 [for points]
 y (float) - the vertical value of the point as a real number relative to *** what? *** using the ***upper/lower?*** left corner as the origin
-
 
 *** Note that I only have data for drawing tasks using polygon and point tools. So I don't know what the data looks like for other types of drawing tools and they aren't represented here! ***
