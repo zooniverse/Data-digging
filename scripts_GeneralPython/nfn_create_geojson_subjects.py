@@ -1,6 +1,7 @@
 import argparse
 import io
 from panoptes_client import Panoptes, Subject, Project, SubjectSet
+from panoptes_client.panoptes import PanoptesAPIException
 import sys, json, csv
 import json
 import requests
@@ -95,9 +96,9 @@ if __name__ == "__main__":
             subject_set.add(subject)
             subjects_count += 1
         except GeolocateClientError as glc_e:
-            sys.stderr.write(f"API error on row: {row_number}\n {glc_e}\n")
+            sys.stderr.write(f"GeoLocate API error on row: {row_number}\n{glc_e}\n")
             continue
-        except Exception as e:
-            print(f"Error reading CSV on row: {row_number} with error {e}\n")
+        except PanoptesAPIException as e:
+            sys.stderr.write(f"Panoptes API Error on row: {row_number} with error {e}\n")
             continue
     print(f"{subjects_count} GeoJson Subjects Created")
