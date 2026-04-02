@@ -1,3 +1,29 @@
+"""
+Part of CSSI Mapping Effort: for now specific to NfN GeoReferencing Mapping Project.
+
+This script will ingest a csv manifest from NfN team that contains reference data (required: locality, country, stateProvince, country). It will then send this data to GEOLocate, parse the GEOLocate response alongside the original reference data, and save the resulting information as subjects on Panoptes (Zooniverse's API).
+
+
+Required args:
+- csv
+- Panoptes username and password (user must have proper project permissions to add subjects onto Project)
+- Project ID
+- Subject Set ID
+
+Important csv notes:
+csv will need to include the following headers (case sensitive)
+
+data:country | data:stateProvince | data:county | data:locality
+
+
+Can run this by running:
+`python nfn_create_geojson_subjects.py _path_to_csv_file_ -u _your_panoptes_user_ -p _your_panoptes_password_ -pid _panoptes_project_id_ -ssid _panoptes_subject_set_id_`
+
+Example:
+`python nfn_create_geojson_subjects.py my_csv_file.csv -u test_user -p test_user_password -pid 123 -ssid 1234`
+
+"""
+
 import argparse
 import io
 from panoptes_client import Panoptes, Subject, Project, SubjectSet
