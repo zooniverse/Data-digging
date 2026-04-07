@@ -101,7 +101,7 @@ if __name__ == "__main__":
             subject.links.project = project
             reference_data = {
                 'locality':row['data:locality'],
-                'stateprovince':row['data:stateProvince'],
+                'stateProvince':row['data:stateProvince'],
                 'country':row['data:country'],
                 'county':row['data:county']
             }
