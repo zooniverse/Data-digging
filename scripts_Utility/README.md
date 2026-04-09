@@ -20,7 +20,12 @@ subject set ID.  Edit Python script and run from command line.
 subject IDs. New subjects are added to a specified project and subject set.
 
 - `edit_metadata.py`: Add or edit fields in subject metadata for a given subject
-set or sets.  Edit Python script and run from command line.
+set or sets.  Edit Python script and run from command line. A second version
+for individual, subject-specific edits is also available: `edit_metadata_indiv.py`
+
+- `nfn_create_geojson_subjects.py`: As part of CSSI Mapping project, this script
+is an initial example of GeoJSON subject creation that also integrated with the
+GEOLocate georeferencing API for use with the NfN Mapping testbed project.
 
 - `remove_combo_nesting.py`: Remove nested annotations that result from the use
 of the Combo task from a classification data export. Call Python script from
