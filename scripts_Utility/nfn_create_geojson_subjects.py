@@ -88,8 +88,10 @@ if __name__ == "__main__":
             first_glc_result = json_result['resultSet']['features'][0]
             transformed_glc_result = first_glc_result.copy()
             uncertainty_radius = first_glc_result.get("properties", {}).get("uncertaintyRadiusMeters")
-            if uncertainty_radius == 'Unavailable':
-                uncertainty_radius = None
+            try:
+                uncertainty_radius = float(uncertainty_radius)
+            except (TypeError, ValueError):
+                uncertainty_radius = 0
 
             transformed_glc_result = {
                 **first_glc_result,
